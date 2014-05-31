@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.41
+// @version	   1.1.42
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -203,6 +203,9 @@
 // v1.1.41
 // Martin McCarthy 29 May 2014
 // Fixes for changes to the istock pages
+// v1.1.42
+// Martin McCarthy 31 May 2014
+// Fixes for check of Locked-for-inspection
 
 // TZ nonsense
 (function () {
@@ -2220,7 +2223,7 @@ checkInspectionStatus = function(href) {
 				if (fullPage.find("form").length==0 && fullPage.find("p").length) {
 					// locked
 					var link = fullPage.find("a:first").attr("href");
-					var match = /-(\d+)-/.exec(link);
+					var match = /-(\d+)(-|$)/.exec(link);
 					if (match) {
 						var target=jQ("#theasis_recentSales_target"+match[1]);
 						if (!target.length) return;
