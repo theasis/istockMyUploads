@@ -206,6 +206,7 @@
 // v1.1.42
 // Martin McCarthy 31 May 2014
 // Fixes for check of Locked-for-inspection
+// Show the loading gif for files in the queue so it's clear when they've been checked
 
 // TZ nonsense
 (function () {
@@ -2002,18 +2003,19 @@ loadRecentSales = function() {
 		var cols = jQ(this).children("td");
 		var target = cols.eq(columns.lastdl.position);
 		var a = cols.eq(columns.dls.position).children("a:first");
+		var loading = jQ("<div><img src='http://i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
 		if (a.length==0) {
 			var href = cols.eq(columns.file.position).children("a:first").attr("href");
 			var match = /id=(\d+)/.exec(href);
 			if (!match) return;
-			jQ("<div>").attr({id:"theasis_recentSales_target"+match[1]}).appendTo(target);
-			checkInspectionStatus(href);
+			loading.attr({id:"theasis_recentSales_target"+match[1]}).appendTo(target);
+			checkInspectionStatus(href,match[1]);
 		} else if (parseInt(a.text(),10)>0) {
 			var href = a.attr("href");
 			var match = /id=(\d+)/.exec(href);
 			if (!match) return;
 			var fid = match[1];
-			jQ("<div>Loading...</div>").attr({id:"theasis_recentSales_target"+fid}).appendTo(target);
+			loading.attr({id:"theasis_recentSales_target"+fid}).appendTo(target);
 			if (doRCs) loadFileRCLUT(fid);
 			loadRecentDls(a,doELs);
 		}
@@ -2213,7 +2215,9 @@ loadRoyaltyDetails = function() {
 		}
 	});
 };
-checkInspectionStatus = function(href) {
+checkInspectionStatus = function(href,id) {
+	var target=jQ("#theasis_recentSales_target"+id);
+	if (!target.length) return;
 	jQ.ajax({
 		url:href,
 		success:function(data) {
@@ -2222,15 +2226,16 @@ checkInspectionStatus = function(href) {
 			if (fullPage.length) {
 				if (fullPage.find("form").length==0 && fullPage.find("p").length) {
 					// locked
-					var link = fullPage.find("a:first").attr("href");
-					var match = /-(\d+)(-|$)/.exec(link);
-					if (match) {
-						var target=jQ("#theasis_recentSales_target"+match[1]);
-						if (!target.length) return;
-						target.html("<img src='http://i.istockimg.com/static/images/blank.gif' width='12' height='12' class='icons lock'><span>Locked</span>");
-					}
+					target.html("<img src='http://i.istockimg.com/static/images/blank.gif' width='12' height='12' class='icons lock'><span>Locked</span>");
+				} else {
+					target.html("");
 				}
+			} else {
+				target.html("");
 			}
+		},
+		failure: function() {
+			target.html("No response");
 		}
 	});
 };
