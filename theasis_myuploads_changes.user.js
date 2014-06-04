@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.42
+// @version	   1.1.43
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -207,6 +207,8 @@
 // Martin McCarthy 31 May 2014
 // Fixes for check of Locked-for-inspection
 // Show the loading gif for files in the queue so it's clear when they've been checked
+// Martin McCarthy 4 Jun 2014
+// Indicate if files in the inspection queue have been vetta-nominated
 
 // TZ nonsense
 (function () {
@@ -2228,7 +2230,12 @@ checkInspectionStatus = function(href,id) {
 					// locked
 					target.html("<img src='http://i.istockimg.com/static/images/blank.gif' width='12' height='12' class='icons lock'><span>Locked</span>");
 				} else {
-					target.html("");
+					var vettaNomCheckbox = fullPage.find("#premiereNominationCheckbox");
+					if (vettaNomCheckbox.length>0 && vettaNomCheckbox.prop('checked')) {
+						target.html("<i>Vetta</i>");
+					} else {
+						target.html("");
+					}
 				}
 			} else {
 				target.html("");
