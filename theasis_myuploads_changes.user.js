@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.43
+// @version	   1.1.44
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -207,8 +207,12 @@
 // Martin McCarthy 31 May 2014
 // Fixes for check of Locked-for-inspection
 // Show the loading gif for files in the queue so it's clear when they've been checked
+// v1.1.43
 // Martin McCarthy 4 Jun 2014
 // Indicate if files in the inspection queue have been vetta-nominated
+// v1.1.44
+// Martin McCarthy 20 Jun 2014
+// Fix for finding the most recent ELs when loading recent DLs
 
 // TZ nonsense
 (function () {
@@ -2313,7 +2317,7 @@ loadRecentEls = function(a) {
 		url:a.attr("href")+"&PageSetting=ExtendedLicense&page=1&order=Date",
 		success:function(data) {
 			var html = jQ(data);
-			var match = /stock-\w+-(\d+)/.exec(html.find("table.t").find('a[href*="/stock-"]:first').attr("href"));
+			var match = /-(\d+)/.exec(html.find("table.t").find('a[href*="istockphoto"]:first').attr("href"));
 			if (!match) return;
 			var target=jQ("#theasis_recentSales_target"+match[1]);
 			if (!target.length) return;
