@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.44
+// @version	   1.1.45
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -213,6 +213,9 @@
 // v1.1.44
 // Martin McCarthy 20 Jun 2014
 // Fix for finding the most recent ELs when loading recent DLs
+// v1.1.45
+// Martin McCarthy 16 Aug 2014
+// Option to hide the tool-tip when mousing over thumbnails
 
 // TZ nonsense
 (function () {
@@ -1294,6 +1297,11 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 		}
 		if (title) jQ("<h3>"+title+"</h3>").appendTo(loupeContainer);
 	}
+	if (getVal("suppressTooltips")) {
+		window.suppressedTitleEl=imgEl.parent().parent().parent().data("fileid");
+		window.suppressedTitle=imgEl.attr("title");
+		imgEl.attr("title","");
+	}
 	if (getVal("loupeDescription")) {
 		var desc=imgEl.parent().siblings('a[href*="file_closeup_edit"]:first').attr("title");
 		if (desc) jQ("<div style='max-width:"+loupeWidth+"px;max-height:40px;'>"+imgEl.parent().siblings('a[href*="file_closeup_edit"]:first').attr("title")+"</div>").appendTo(loupeContainer);
@@ -1302,6 +1310,16 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 };
 undoLoupe = function() {
 	jQ("#theasis_myUploads_loupe").remove();
+	if (getVal("suppressTooltips")) {
+		var fileid=window.suppressedTitleEl;
+		var imgRow=jQ("tr[data-fileid='"+fileid+"']");
+		if (imgRow.length==1) {
+			var imgEl=jQ("img",imgRow).first();
+			imgEl.attr('title',window.suppressetTitle);
+			window.suppressedTitleEl=null;
+			window.suppressetTitle=null;
+		}
+	}
 };
 checkIfLargerThumbNeeded = function() {
 	var thumb=jQ(this);
@@ -2564,6 +2582,12 @@ var settings = {
 		type:"check",
 		label:"Show file description in loupe"
 	},
+	suppressTooltips: {
+		key:"myUploads_suppressTooltips",
+		def:false,
+		type:"check",
+		label:"Suppress thumbnail tooltips"
+	},
 	fetchELs: {
 		key:"myUploads_fetchELs",
 		def:false,
@@ -2884,6 +2908,7 @@ addMyUploadsSettings = function(container) {
     addSettings(container,"loupe");
     addSettings(container,"loupeTitle");
     addSettings(container,"loupeDescription");
+    addSettings(container,"suppressTooltips");
 //    addSettings(container,"lastDlColumn");
     addSettings(container,"editButtons");
     addSettings(container,"fetchELs");

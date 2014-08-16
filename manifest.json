@@ -3,7 +3,7 @@
 
   "name": "iStock my_uploads fixes",
   "description": "Makes usability improvements to the iStock my_uploads page for contributors.",
-  "version": "1.1.44",
+  "version": "1.1.45",
   
   "icons": { 
           "128": "myuploads-icon-1.png" },
