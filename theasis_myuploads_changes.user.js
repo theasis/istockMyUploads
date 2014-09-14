@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.45
+// @version	   1.1.46
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -216,6 +216,10 @@
 // v1.1.45
 // Martin McCarthy 16 Aug 2014
 // Option to hide the tool-tip when mousing over thumbnails
+// v1.1.46
+// Martin McCarthy 13 Sep 2014
+// Handle the change to istock's credit pricing
+// Recognise Essentials
 
 // TZ nonsense
 (function () {
@@ -1858,51 +1862,42 @@ processFileRCDetails = function(data) {
 	var fid=jQ("#fileId",html).val();
 	debug("processFileRCDetails: fid=" + fid);
 	if (fid) {
-		fileRCLUT[fid]={};
-		jQ("#filesGrid tr", html).each(function(index) {
-			var size=jQ(this).find("div.radio-button-display-name:first").text().trim();
-			var credits=jQ(this).find("div.credits:first span.amount:first").text().trim();
-			fileRCLUT[fid][size]=credits;
-			debug("processFileRCDetails: fileRCLUT[" + fid+"]["+size+"]="+credits);
-		});
+		fileRCLUT[fid]=extractRCsFromFileData(data);
+		debug("fileRCLUT["+fid+"]="+extractRCsFromFileData(data));
 		doDailySalesStats();
 	}
+};
+extractRCsFromFileData = function(data) {
+	var match = /FilePriceInformation.*"filePriceInformation".*"priceInCredits":(\d+)/.exec(data);
+	if (match) {
+		return parseInt(match[1],10);
+	}
+	return 0;
 };
 processLatestRCDetails = function(data,royaltyStr,ftype) {
 	debug("ftype:"+ftype);
 	ftype=parseInt(ftype,10);
-	var saleSize = GM_getValue(toolBarSaleSize,"").replace(/ \([^)]+\)/,"");
 	var royalty = parseFloat(royaltyStr);
 	debug("ProcessLatestRCDetails: royalty " + royalty + " str " + royaltyStr);
 	var html = jQ(data);
-	var sizeDiv = jQ("#filesGrid div.radio-button-display-name:contains('"+saleSize+"')", html).filter(function(index) { return jQ(this).text().trim() == saleSize }).eq(0);
-	if (sizeDiv.length) {
-		var row=sizeDiv.parent().parent();
-		var cell=row.find("div.credits span.amount");
-		var numCredits=cell.text();
-		if (numCredits) {
-			var target=jQ("#theasisToolBarLatestDownloadTextLink");
-			target.text(target.text() + " " + numCredits + "RCs");
-			debug("processLatestRCDetails: numCredits="+numCredits);
-			var nc=parseInt(numCredits,10);
-			if (nc) {
-				var paidPerCredit=0;
-				var txt="";
-				var pctTxt=".";
-				debug("ftype:" + ftype);
-				if (ftype>=0 && ratesFileTypes[ftype][1]>0) { // TODO: access the correct file type
-					var pct = ratesFileTypes[ftype][1];
-					paidPerCredit=(royalty*100/pct/nc).toFixed(2);
-					txt="Customer paid $" +paidPerCredit+ " per credit.\n";
-					pctTxt = " ("+pct+"%).";
-					debug(pctTxt);
-				}
-				var perCredit=(royalty/nc).toFixed(2);
-				target.attr("title",txt+"You earned $" +perCredit+ " royalty per credit"+pctTxt);
-			} else {
-				debug("No nc");
-			}
+	var numCredits=extractRCsFromFileData(data);
+	if (numCredits) {
+		var target=jQ("#theasisToolBarLatestDownloadTextLink");
+		target.text(target.text() + " " + numCredits + "RCs");
+		debug("processLatestRCDetails: numCredits="+numCredits);
+		var paidPerCredit=0;
+		var txt="";
+		var pctTxt=".";
+		debug("ftype:" + ftype);
+		if (ftype>=0 && ratesFileTypes[ftype][1]>0) { // TODO: access the correct file type
+			var pct = ratesFileTypes[ftype][1];
+			paidPerCredit=(royalty*100/pct/numCredits).toFixed(2);
+			txt="Customer paid $" +paidPerCredit+ " per credit.\n";
+			pctTxt = " ("+pct+"%).";
+			debug(pctTxt);
 		}
+		var perCredit=(royalty/numCredits).toFixed(2);
+		target.attr("title",txt+"You earned $" +perCredit+ " royalty per credit"+pctTxt);
 	}
 };
 analyseSales = function() {
@@ -2410,6 +2405,7 @@ loadRecentDls = function(a,doELs) {
 	});
 };
 recordRecentSale = function(saleDate,royalty,size,fid) {
+	debug("recordRecentSale " + saleDate + " " + royalty + " " + size + " " + fid);
 	var numDays=getVal("numberOfDaysTotalled");
 	if (numDays<1) return;
 	var when=saleDate.slice(6)+saleDate.slice(3,5)+saleDate.slice(0,2);
@@ -2418,15 +2414,19 @@ recordRecentSale = function(saleDate,royalty,size,fid) {
 	if (match) {
 		cents += parseInt(match[1].replace(",",""),10)*100 + parseInt(match[2],10);
 	}
-	var rcs=0;
+	var rcs;
 	var pendingrcs;
 	try {
-		rcs=parseInt(fileRCLUT[fid][size],10);
+		rcs=fileRCLUT[fid];
 	} catch(e) {
-		if (fid && size) {
-			pendingrcs={fid:fid, size:size};
-		}
+		debug("No LUT entry");
 		// no LUT entry - fall through with unrecorded credits
+	}
+	if (typeof rcs !== 'number' || isNaN(rcs)) {
+		if (fid) {
+			pendingrcs=fid;
+		}
+		rcs = 0;
 	}
 	if (dailySalesStats[when]) {
 		dailySalesStats[when].dls++;
@@ -2434,8 +2434,9 @@ recordRecentSale = function(saleDate,royalty,size,fid) {
 		dailySalesStats[when].rcs += rcs;
 		if ( pendingrcs ) dailySalesStats[when].pendingrcs.push(pendingrcs);
 	} else {
-		dailySalesStats[when] = { dls:1, cents:cents, rcs:rcs, pendingrcs:(pendingrcs?[pendingrcs]:[]), firsts:0, fdate:formatDateStr(saleDate, true)[1] };
+		dailySalesStats[when] = { dls:1, cents:cents, rcs:rcs, pendingrcs:pendingrcs?[pendingrcs]:[], fdate:formatDateStr(saleDate, true)[1] };
 	}
+	debug("recordRecentSale done: "+when+" dls:"+dailySalesStats[when].dls+" rcs:"+dailySalesStats[when].rcs+" pending:"+dailySalesStats[when].pendingrcs);
 	doDailySalesStats();
 };
 doDailySalesStats = function() {
@@ -2443,17 +2444,24 @@ doDailySalesStats = function() {
 	var rows="";
 	var dates = Object.keys(dailySalesStats).sort();
 	var downTo=Math.max(0,dates.length-numDays);
+	var rcs, tmpRcs;
 	for(var i=dates.length-1;i>=downTo;--i) {
 		for(var p=0;p<dailySalesStats[dates[i]].pendingrcs.length;++p) {
 			try {
-				dailySalesStats[dates[i]].rcs += parseInt(fileRCLUT[dailySalesStats[dates[i]].pendingrcs[p].fid][dailySalesStats[dates[i]].pendingrcs[p].size],10);
-				dailySalesStats[dates[i]].pendingrcs[p].fid=0;
+				debug("pending dailySalesStats for "+dailySalesStats[dates[i]].pendingrcs[p]+": "+fileRCLUT[dailySalesStats[dates[i]].pendingrcs[p]]);
+				dailySalesStats[dates[i]].rcs = dailySalesStats[dates[i]].rcs ? dailySalesStats[dates[i]].rcs : 0;
+				tmpRcs = fileRCLUT[dailySalesStats[dates[i]].pendingrcs[p]];
+				if (typeof tmpRcs === 'number' && !isNaN(tmpRcs)) {
+					dailySalesStats[dates[i]].rcs += tmpRcs;
+					dailySalesStats[dates[i]].pendingrcs[p]=0;
+				}
+				debug("dailySalesStats["+dates[i]+"] rcs is now "+dailySalesStats[dates[i]].rcs);
 			} catch (e) {
+				console.log("ERROR:"+e);
 				// LUT hasn't been filled in yet - that's OK
 			}
 		}
-		var rcs = dailySalesStats[dates[i]].rcs;
-		rcs = rcs ? "<td style='text-align:right; padding:1px 4px;'>" +rcs + " RCs </td>" : "";
+		rcs = "<td style='text-align:right; padding:1px 4px;'>" + dailySalesStats[dates[i]].rcs + " RCs </td>";
 		var roy = "$"+(dailySalesStats[dates[i]].cents/100).toFixed(2);
 		rows += "<tr><td style='text-align:right; padding:1px 4px; font-weight:bold;'>"+dailySalesStats[dates[i]].fdate+"</td><td style='text-align:right; padding:1px 4px;'>"+dailySalesStats[dates[i]].dls+" DLs </td>"+rcs+"<td style='text-align:right; padding:1px 4px;'>"+roy+" </td></tr>";
 	}
@@ -2495,10 +2503,10 @@ reformatCollections = function(html) {
 		} else {
 			title="len:"+cols.length+"; text -" +colText+"-";
 		}
-		if (cols.eq(3).text()=="Main") {
-			title="Main";
+		if (cols.eq(3).text()=="Essentials") {
+			title="Essentials";
 			colour="#ddd";
-			txt="M";
+			txt="E";
 		} else if (cols.eq(3).text()=="Signature") {
 			title="Signature";
 			colour="#dff";
@@ -2507,10 +2515,6 @@ reformatCollections = function(html) {
 			title="Signature+";
 			colour="#ffd";
 			txt="+";
-		} else if (cols.eq(3).text()=="Vetta") {
-			title="Vetta";
-			colour="#fdb";
-			txt="V";
 		}
 		var icon = jQ("<span title='"+title+"' style='color:#333 ; background-color:"+colour+"; font-size:100%; font-weight:bold; text-align:center; border:1px solid #333; padding: 0.2em 0.3em; border-radius: 0.5em;'>"+txt+"</span>");
 		cols.eq(3).html(icon);
