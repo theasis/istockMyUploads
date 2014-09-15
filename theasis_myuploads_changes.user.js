@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.46
+// @version	   1.1.47
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -220,6 +220,9 @@
 // Martin McCarthy 13 Sep 2014
 // Handle the change to istock's credit pricing
 // Recognise Essentials
+// v1.1.47
+// Martin McCarthy 15 Sep 2014
+// Redeemed fifths of a Credit!
 
 // TZ nonsense
 (function () {
@@ -1059,6 +1062,7 @@ var DB_NAME="theasis_scripts_Database";
 var DB_VIEW_STORE_NAME="views";
 var DB_LBVIEW_STORE_NAME="lbviews";
 var DB_VERSION=3;
+var RC_MULTIPLIER=5;
 var request;
 var db;
 openGenericDb=function(checkFn) {
@@ -1870,7 +1874,7 @@ processFileRCDetails = function(data) {
 extractRCsFromFileData = function(data) {
 	var match = /FilePriceInformation.*"filePriceInformation".*"priceInCredits":(\d+)/.exec(data);
 	if (match) {
-		return parseInt(match[1],10);
+		return parseInt(match[1],10)*RC_MULTIPLIER;
 	}
 	return 0;
 };
