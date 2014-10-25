@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.47
+// @version	   1.1.48
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -223,6 +223,9 @@
 // v1.1.47
 // Martin McCarthy 15 Sep 2014
 // Redeemed fifths of a Credit!
+// v1.1.48
+// Martin McCarthy 25 Oct 2014
+// Better links to the LB page
 
 // TZ nonsense
 (function () {
@@ -2732,6 +2735,12 @@ var settings = {
 		type:"check",
 		label:"Always show totals in the Royalties column"
 	},
+	sortLBPage: {
+		key:"myUploads_sortLBPage",
+		def:true,
+		type:"check",
+		label:"The LB page sorts by Age"
+	},
 	debug: {
 		key:"myUploads_debug",
 		def:false,
@@ -2937,6 +2946,7 @@ addMyUploadsSettings = function(container) {
     addSettings(container,"newSalesNotification");
     addSettings(container,"reportLoggedOut");
     addSettings(container,"columns");
+    addSettings(container,"sortLBPage");
     addSettings(container,"debug");
 };
 
@@ -3274,6 +3284,10 @@ if (noGMConflict() && userID) {
 	var myUploads = onDetailPage || onSubPage || onELPage || onELEarningsPage || onDesignPage || onPartnerPage || onGettyPage || onDLHistoryPage || onMyDLPage || onImgSubPage;
 	
 	doStyle();
+	if (getVal("sortLBPage")) {
+		jQ('#toolbar-lightbox').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
+		jQ('#lclnv a[href$="/lightbox"').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
+	}
 	if (myUploads) {
 		if (onDetailPage) {
 			reformatCollections();
