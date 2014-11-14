@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.48
+// @version	   1.1.49
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -226,6 +226,9 @@
 // v1.1.48
 // Martin McCarthy 25 Oct 2014
 // Better links to the LB page
+// v1.1.49
+// Martin McCarthy 25 Oct 2014
+// Option to not show the sale size in the toolbar
 
 // TZ nonsense
 (function () {
@@ -1810,7 +1813,7 @@ processLatestSaleDetails = function(data) {
 	var sp = "&nbsp;"
 	var saleSize = jQ.trim(cols.eq(1).text());
 	var royalty = jQ.trim(cols.eq(3).text().replace("USD",""));
-	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='http://www.istockphoto.com/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + saleSize + sp + royalty + "</a></div>";
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='http://www.istockphoto.com/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
 	GM_setValue(toolBarSaleSize,saleSize);
 	GM_setValue(toolBarSaleTextId,saleText);
 	debug("processLatestSaleDetails: saleSize=" + saleSize);
@@ -2741,6 +2744,12 @@ var settings = {
 		type:"check",
 		label:"The LB page sorts by Age"
 	},
+	showSaleSize: {
+		key:"myUploads_showSaleSize",
+		def:true,
+		type:"check",
+		label:"Show the size of the latest sale"
+	},
 	debug: {
 		key:"myUploads_debug",
 		def:false,
@@ -2947,6 +2956,7 @@ addMyUploadsSettings = function(container) {
     addSettings(container,"reportLoggedOut");
     addSettings(container,"columns");
     addSettings(container,"sortLBPage");
+    addSettings(container,"showSaleSize");
     addSettings(container,"debug");
 };
 
