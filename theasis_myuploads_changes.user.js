@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.49
+// @version	   1.1.50
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -225,10 +225,12 @@
 // Redeemed fifths of a Credit!
 // v1.1.48
 // Martin McCarthy 25 Oct 2014
-// Better links to the LB page
 // v1.1.49
 // Martin McCarthy 25 Oct 2014
 // Option to not show the sale size in the toolbar
+// v1.1.50
+// Martin McCarthy 14 Nov 2014
+// Show my_uploads details in a grid for recent subs
 
 // TZ nonsense
 (function () {
@@ -3261,6 +3263,76 @@ markTodaysSales=function(){
 		}
 	});
 };
+processPageForGrid=function(data,container,page,month,url_pattern,replaceStr,count){
+	var finished=false;
+	var seenAny=false;
+	var html=jQ(data);
+	jQ('tr',html).each(function(){
+		var row=jQ(this);
+		var cells=jQ("td",row);
+		if (cells && cells.length>0) {
+			var cell=cells.first().find('a:first');
+			if (cell.length>0) {
+				var thisMonth=cells.eq(5).text().substring(3);
+				if (!month) {
+					month=thisMonth;
+				}
+				if (month===thisMonth) {
+					var obj=jQ("<div>").css({display:'inline-block',width:'120px',height:'160px',border:'2px solid white',background:'#eee',float:'left'});
+					var box=jQ("<div>").css({height:'120px','text-align':'center','vertical-align':'middle'});
+					jQ('img',cell).removeAttr('width').css({padding:'6px'});
+					box.append(cell);
+					obj.append(box);
+					box=jQ("<div>").css({'float':'left','padding-left':'1ex'});
+					box.text(cells.eq(3).text());
+					obj.append(box);
+					box=jQ("<div>").css({float:'right','padding-right':'1ex'});
+					box.text(" $"+cells.eq(4).text());
+					obj.append(box);
+					box=jQ("<div>").css({clear:'both','text-align':'center'});
+					box.text(cells.eq(5).text());
+					obj.append(box);
+					container.append(obj);
+					seenAny=true;
+					++count;
+				} else {
+					finished=true;
+				}
+			}
+		}
+	});
+	jQ('#theasis_gridview_count').text(count+' file(s)');
+	if (!finished && seenAny) {
+		addPageToGrid(container,url_pattern,replaceStr,page+1,month,count);
+	} else {
+		jQ('#theasis_gridview_loading').hide();
+	}
+};
+addPageToGrid=function(container,url_pattern,replaceStr,page,month,count){
+	var url=url_pattern.replace(replaceStr,page);
+	jQ.ajax({
+		url:url,
+		success:function(data){processPageForGrid(data,container,page,'',url_pattern,replaceStr,count);}
+		});
+};
+showGridview=function(){
+	var container=jQ('<div id="theasis_Gridview">');
+//	jQ('#cntnt').css('width','2000px');
+//	jQ('#mncntnt').css('width','');
+	jQ('h1.ImTheHead').text('Image subscription - Month Gridview').after(jQ('<div><span id="theasis_gridview_count">0 files</span><img id="theasis_gridview_loading" src="http://i.istockimg.com/static/images/loading.gif" width="12px" height="12px"></div>'));;
+	jQ('#showGridviewButton').remove();
+	jQ('div.paginator').remove();
+	jQ('tr.my-uploads-row:first').parent().parent().remove();
+	var formtable=jQ('#myUploadsFilter').parent().parent().parent().parent();
+	formtable.before(container);
+	formtable.remove();
+	addPageToGrid(container,'/my-account/my-uploads/subscriptions/xxxx/lastsubdl/desc','xxxx',1,'',0);
+};
+showGridviewButton=function(){
+	var button = jQ("<input id='showGridviewButton' type='submit' value='Month Gridview' class='btnCtal' style='padding:3px 7px; margin-left:0px; margin-right:4px; margin-bottom:4px;'>").click(showGridview);
+	var target=jQ("h1.ImTheHead:first");
+	target.after(button);
+};
 //////////////////////////////////////////////////////
 setDebugMode();
 var userID=loggedInUser();
@@ -3334,6 +3406,9 @@ if (noGMConflict() && userID) {
 		var removeText= (onGettyPage || onELEarningsPage || onDLHistoryPage || onMyDLPage) ? false : true;
 		var wrapper= onGettyPage||onImgSubPage ? false : true;
 		addContribPageLinks(userID,paraText,removeText,wrapper,onDetailPage);
+		if (onImgSubPage) {
+			showGridviewButton();
+		}
 	}
 	if (onLBPage) {
 		openLBDb();
