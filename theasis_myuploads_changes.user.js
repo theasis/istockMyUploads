@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.50
+// @version	   1.1.51
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -231,6 +231,9 @@
 // v1.1.50
 // Martin McCarthy 14 Nov 2014
 // Show my_uploads details in a grid for recent subs
+// v1.1.51
+// Martin McCarthy 29 Nov 2014
+// Sale details for subs
 
 // TZ nonsense
 (function () {
@@ -1226,7 +1229,7 @@ getTable = function(html) {
   if (isImgSub) {
     selector = "table:eq(1)";
   }
-  console.log("** selector: " + selector);
+//  console.log("** selector: " + selector);
 	var table = jQ(selector,html);
 	if (table.length==0) {
  		table = jQ(".reporttable:first",html);
@@ -1346,7 +1349,6 @@ checkIfLargerThumbNeeded = function() {
 resizeThumbs = function(addStyle,secondColumn,html) {
 	var colStr = secondColumn ? "td:eq(1)" : "td:first";
 	var table = getTable(html);
-  console.log("table.length " + table.length);
 	if (table.length) {
 		var size = getVal("thumbsize");
 		var rows = table.find("tr:gt(0)").each(function(){
@@ -1377,6 +1379,21 @@ reformatDates = function(html) {
 			}
 			var cell=cols.eq(columns["lastdl"].origposition);
 			cell.html(doFixDate(cell));
+		} );
+    }	
+};
+reformatSubsDates = function(html) {
+	var targetCols=[2,5];
+	var table = getTable(html);
+    if (table.length) {
+		var rows = jQ("tr:gt(0)",table);
+		var cols;
+		rows.each(function() {
+			cols = jQ(this).children('th, td');
+			for (var i=0;i<targetCols.length;++i) {
+				var cell=cols.eq(targetCols[i]);
+				cell.html(doFixDate(cell));
+			}
 		} );
     }	
 };
@@ -1459,6 +1476,12 @@ dateStrToDate = function(dateStr) { // parse 23/02/2009 8:16 AM MST into a local
 fixBasicTableDetails = function(html) {
 	var table = getTable(html);
 	table.find("td").css({"vertical-align":"top"});
+};
+fixSubTableDetails = function(html) {
+	var table = getTable(html);
+	if (jQ("#theasis_myUploads_requestSubsData").length==0) {
+		jQ("<img id='theasis_myUploads_requestSubsData' src='https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&chld=|12|000|glyphish_download|12|d42|FFF' style='padding-left:6px;padding-top:4px;cursor:pointer;' class='btnCtal'>").click(function(){loadRecentSubs();}).insertAfter(jQ("th a[href*=lastsubdl]"));
+	}
 };
 fixTableDetails = function(html) {
 	var table = getTable(html);
@@ -1632,7 +1655,7 @@ addContribPageLinks = function(userID,paraText,removeText,wrapper,onDetailPage) 
 //		"Plus":"/my_uploads_pricepoint.php"
 	};
 	var head = jQ(wrapper?"#wrapper":"#mncntnt").find("h1:first");
-  console.log("Head: " + head.length);
+//  console.log("Head: " + head.length);
   head.addClass("ImTheHead");
   try {
   	if (removeText) { // remove the "links have moved" text
@@ -1688,7 +1711,7 @@ showLatestSale = function() {
 //	debug("showLatestSale: lastThumbTitle=" + lastThumbTitle);
 	var lastThumbText=GM_getValue(toolBarSaleTextId,"<a href='#'>Loading...</a>");
 	var img = lastThumbImg ?
-		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {console.log("showLatestSale: complete");jQ(this).load();}}) :
+		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
 		jQ("<img>").attr({id:toolBarSaleThumbId,"src":'http://i.istockimg.com/static/images/blank.gif'});
 	var a = jQ("<a>").attr({href:"#"}).css({color:"#aaa","font-weight":"normal","font-size":"90%"}).append(img);
 	var txt = jQ("<span>").attr({id:toolBarSaleTextId}).html(lastThumbText);
@@ -2052,6 +2075,20 @@ loadRecentSales = function() {
 		}
 	});	
 };
+loadRecentSubs = function() {
+	jQ("#theasis_myUploads_requestSubsData").unbind('click').attr({src:'https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&chld=|12|000|glyphish_download|12|ccc|FFF'}).css({cursor:"default"});
+	jQ("table:gt(0)").find("tr:gt(0)").each(function(){
+		var cols = jQ(this).children("td");
+		var target = cols.eq(5);
+		var fid = cols.eq(1).children("a:first").text();
+		var loading = jQ("<div><img src='http://i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
+		if (fid) {
+			var href = "/file_downloads.php?PageSetting=Subscriptions&id="+fid;
+			loading.attr({id:"theasis_recentSubs_target"+fid}).appendTo(target);
+			loadRecentSubsDetails(href);
+		}
+	});	
+};
 loadDLsMoDetails = function() {
 	jQ("#theasis_myUploads_requestDLsPerMonData").unbind('click').attr({src:'https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&chld=|12|000|glyphish_download|12|ccc|FFF'}).css({cursor:"default"}).before(" ($/mo)");
 	var i=-1;
@@ -2412,6 +2449,54 @@ loadRecentDls = function(a,doELs) {
 			}
 			if (doELs) {
 				loadRecentEls(a);
+			}
+		}
+	});
+};
+loadRecentSubsDetails = function(href) {
+	jQ.ajax({
+		url:href,
+		success:function(data) {
+			var html = jQ(data);
+			var match = /stock-\w+-(\d+)/.exec(html.find("table.t").find('img[src*="/stock-"]:first').attr("src"));
+			if (!match) return;
+			var targetId=match[1];
+			var target=jQ("#theasis_recentSubs_target"+targetId);
+			if (!target.length) return;
+			target.html("");
+			var targetDate = target.parent().find("span:first").text().substr(1,10);
+			var tid="theasisMyUploadsSales"+targetId;
+			var olderDiv=jQ("<div>").attr({"id":tid}).hide();
+			var currentDiv=jQ("<div>");
+			var lastSaleDate="";
+			var oldSaleCount=0;
+			var table = html.find(".reporttable:first");
+			table.find("tr:gt(0)").each(function(){
+				var cols = jQ(this).find("td");
+				var royalty = jQ.trim(cols.eq(2).text().replace("USD",""));
+				var sale = jQ("<div style='font-size:80%;white-space:nowrap;'>" + royalty + "</div>");
+				var thisSaleDate=cols.eq(1).text().substr(0,10);
+				if (thisSaleDate==targetDate) {
+					sale.appendTo(currentDiv);
+				} else {
+					if (thisSaleDate!=lastSaleDate) {
+						lastSaleDate=thisSaleDate;
+						var fDate=thisSaleDate;
+						try {
+							fDate=formatDateStr(thisSaleDate, true)[1];
+						} catch (e) {
+							// don't care
+						}
+						olderDiv.append(jQ("<div style='font-size:80%;white-space:nowrap;font-weight:bold;'>" + fDate + "</div>"));
+						oldSaleCount++;
+					}
+					sale.appendTo(olderDiv);
+				}
+			});
+			currentDiv.appendTo(target);
+			if (oldSaleCount) {
+				olderDiv.appendTo(target);
+				setSalesReveal(target,tid);
 			}
 		}
 	});
@@ -3201,7 +3286,6 @@ processStatsTab = function(data) {
 	if (data.match(/'content'\s*:\s*''/) && !window.theasis_checkedStatsTab) {
 		window.theasis_checkedStatsTab=true;
 		getStatsTabObj(true);
-		console.log("processStatsTab: going round again");
 		return;
 	}
 	debug("processStatsTab: content: " + data);
@@ -3407,6 +3491,8 @@ if (noGMConflict() && userID) {
 		var wrapper= onGettyPage||onImgSubPage ? false : true;
 		addContribPageLinks(userID,paraText,removeText,wrapper,onDetailPage);
 		if (onImgSubPage) {
+			reformatSubsDates();
+			fixSubTableDetails();
 			showGridviewButton();
 		}
 	}
