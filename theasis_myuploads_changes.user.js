@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   1.1.51
+// @version	   2.0.9
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -234,6 +234,12 @@
 // v1.1.51
 // Martin McCarthy 29 Nov 2014
 // Sale details for subs
+// v1.1.52
+// Martin McCarthy 13 Jan 2015
+// PP Fixes
+// v2.0.0
+// Martin McCarthy 9 Apr 2015
+// New ADP
 
 // TZ nonsense
 (function () {
@@ -1076,6 +1082,7 @@ var DB_VERSION=3;
 var RC_MULTIPLIER=5;
 var request;
 var db;
+var toolbarUrl="/help/site-map";
 openGenericDb=function(checkFn) {
 	if (!indexedDB) { return; }
     var req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1156,7 +1163,7 @@ genericAddViews=function(obj,storeName) {
 doStyle = function () {
 	var el = jQ("#theasis_myUploads_style");
 	if (el.length<1) {
-		jQ("<style type='text/css' id='theasis_myUploads_style'>.theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;}</style>").appendTo("head");
+		jQ("<style type='text/css' id='theasis_myUploads_style'>body {padding-bottom:40px;} .theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;} .theasisReplacementToolbar {min-width: 900px; height: 43px; z-index: 5000; position: fixed; left: 25px; right: 25px; bottom: 0; background: #111; opacity: 0.9; line-height: 43px; border-radius: 5px 5px 0 0; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;} .theasisReplacementToolbar #tbContentLeft {float: left; margin-left: 12px;} .theasisReplacementToolbar #tbContentRight {text-align: right; margin-right: 12px;}  .theasis_toolbarSeparator {width: 0px; height: 20px; border-left: 1px dotted #666; display: inline; margin-left: 8px; margin-right: 8px;} .theasisReplacementToolbar a {color: #e3e3e3;} #theasis_myUploads_loupe {background: rgba(240,240,240,0.95); color: #333; padding: 10px; border: solid 3px rgba(180,180,180,0.5); z-index:1000; -moz-box-shadow: 4px 4px 4px rgba(0,0,0,0.6); --box-shadow: 4px 4px 4px rgba(0,0,0,0.6); box-shadow: 4px 4px 4px rgba(0,0,0,0.6); border-radius: 5px;} .theasis_loupe_title_text {font-size: 14px;} .theasis_loupe_dls_text {font-size: 12px;font-weight:bold;color:black;background:rgba(240,240,240,0.2);text-shadow:-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white;border-radius:5px;overflow:hidden;padding:4px; margin: 0;} .theasis_detailsTable { border: 1px solid #000;} .theasis_detailsTable tr { border: 1px dotted #02a388; } .theasis_detailsTable td:first-child { padding: 2px 7px 2px 7px;} .theasis_detailsTable td { font-size: 85%; padding: 2px 7px 2px 7px;} .theasis_dlDetlailsTable_row_a { background-color:#a2e3d8; }</style>").appendTo("head");
 	}
 };
 // processRoyaltyRates()
@@ -1222,11 +1229,12 @@ setDebugMode = function() {
 getTable = function(html) {
   var restURLFormat = loc.indexOf("/my-uploads/")>-1 || loc.indexOf("/my-account/")>-1;
   var isImgSub = loc.indexOf("/my-uploads/subscriptions")>-1;
+  var isPP = loc.indexOf("/my_uploads_partner_program.php")>-1;
   var selector = ".data:first";
   if (restURLFormat) {
     selector = "table:first";
   }
-  if (isImgSub) {
+  if (isImgSub || isPP) {
     selector = "table:eq(1)";
   }
 //  console.log("** selector: " + selector);
@@ -1263,10 +1271,6 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 	var imgUrl=imgEl.attr('src').replace(/\/[13]\//,'/2/');
 	var style = {position:"fixed",left:l,top:t,"z-index":"15000"};
 	var loupeContainer = jQ("<div id='theasis_myUploads_loupe'><table style='margin:1px;'><tr><td id='theasisLastSaleLoupeCell1' style='vertical-align:top; padding:0;'/><td id='theasisLastSaleLoupeCell2' style='vertical-align:top; padding:0;'/></tr></table></div>").css(style);
-	if (addStyle) {
-		var extraStyle={background:"rgba(240,240,240,0.95)",color:"#333",padding:"10px",border:"solid 3px rgba(180,180,180,0.5)","z-index":"1000","-moz-box-shadow":"4px 4px 4px rgba(0,0,0,0.6)","-webkit-box-shadow":"4px 4px 4px rgba(0,0,0,0.6)","box-shadow":"4px 4px 4px rgba(0,0,0,0.6)","border-radius":"5px",overflow:"hidden"};
-		loupeContainer.css(extraStyle);
-	}
 	loupeContainer.hide();
 	loupeContainer.appendTo('body');
 	var loupe = jQ("<img>").attr({src:imgUrl});
@@ -1275,7 +1279,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 		debug("doLoupe: idList length " + (idList?idList.length:"null idList"));
 		if (getVal("tenThumbs") && idList && idList.length>1) {
 			var extras=jQ("<table>").css({"border-width":"5px","border-spacing":"5px","border-style":"solid","border-color":"rgba(240,240,240,0.95)",margin:"0px"});
-			var eRow=jQ("<tr>");
+			var eRow=jQ("<tr style='vertical-align:top;'>");
 			for(var i=1; i<Math.min(10,idList.length); ++i) {
 				var id=idFromIdPlusType(idList[i]);
 				var dls=dlsFromIdPlusType(idList[i]);
@@ -1285,17 +1289,17 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 					case "0": dlClassStyle="ridge"; dlClassColour="rgba(20,20,20,0.95)"; break;
 					case "1": dlClassStyle="ridge"; dlClassColour="rgba(240,240,20,0.95)"; break;
 				}
-				var dlBox=jQ("<span>").css({"font-weight":"bold",color:"black",background:"rgba(240,240,240,0.2)","text-shadow":"-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white","border-radius":"5px",overflow:"hidden",padding:"0.3em"}).text(dls);
-				var imgCell = jQ("<td>").css({width:"70px",height:"70px","background":"url("+"http://i.istockimg.com/file_thumbview_approve/"+id+"/1/) no-repeat center center","background-size":"cover","border-width":"5px","border-spacing":"5px","border-style":"solid","border-color":"rgba(240,240,240,0.95)",padding:"0"}).html(dlBox);
+				var dlBox=jQ("<span class='theasis_loupe_dls_text'>").text(dls);
+				var imgCell = jQ("<td>").css({width:"70px",height:"70px","background":"url("+"//i.istockimg.com/file_thumbview_approve/"+id+"/1/) no-repeat center center","background-size":"cover","border-width":"5px","border-spacing":"5px","border-style":"solid","border-color":"rgba(240,240,240,0.95)",padding:"0"}).html(dlBox);
 				imgCell.appendTo(eRow);
 				if (i%3==0) {
 					eRow.appendTo(extras);
-					eRow=jQ("<tr>");
+					eRow=jQ("<tr style='vertical-align:top;'>");
 				}
 			}
 			eRow.appendTo(extras);
 			extras.appendTo(jQ("#theasisLastSaleLoupeCell2"));
-			jQ("<tr><td colspan='3' style='text-align:right;width:225px;font-size:120%;'>Previous DLs</td></tr>").appendTo(jQ("#theasisLastSaleLoupeCell2"));
+			jQ("<tr><td colspan='3' class='theasis_loupe_title_text' style='text-align:right;width:225px;'>Previous DLs</td></tr>").appendTo(jQ("#theasisLastSaleLoupeCell2"));
 		}
 	} catch(e) {
 		console.log(e.message);
@@ -1314,7 +1318,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 		if (title && idList && idList.length>0) {
 			title += ": " + dlsFromIdPlusType(idList[0]) + " DLs";
 		}
-		if (title) jQ("<h3>"+title+"</h3>").appendTo(loupeContainer);
+		if (title) jQ("<div class='theasis_loupe_title_text'>"+title+"</div>").appendTo(loupeContainer);
 	}
 	if (getVal("suppressTooltips")) {
 		window.suppressedTitleEl=imgEl.parent().parent().parent().data("fileid");
@@ -1595,13 +1599,12 @@ checkLBViews = function() {
 		}
 	});
 };
-updateKeywords = function(cell,data,img) {
+updateKeywords = function(data,params) {
+	var cell=params[0];
+	var img=params[1];
 	var html=jQ(data);
-	var kws=[];
+	var kws=data.keywords.slice(0,5);
 	img.hide();
-	jQ("#keywords-toggle span[itemprop=keywords]:lt(4)",html).each(function(){
-		kws.push(jQ(this).text());
-	});
 	cell.html("<i>"+kws.join(",<br>")+"</i>");
 };
 doKeywords = function() {
@@ -1622,7 +1625,7 @@ doKeywordsLinks = function() {
 			var match=img.attr('src').match(/approve\/(\d+)\//);
 			if (match) {
 				var id=match[1];
-				var kwButton = jQ("<img src='http://i.istockimg.com/file-view/display/2780/26/' alt='Show main keywords' title='Show main keywords' />").css({'padding-left':'.5em',cursor:'pointer'}).click(function(){showKeywords(jQ(this),row,id);});
+				var kwButton = jQ("<img src='//i.istockimg.com/file-view/display/2780/26/' alt='Show main keywords' title='Show main keywords' />").css({'padding-left':'.5em',cursor:'pointer'}).click(function(){showKeywords(jQ(this),row,id);});
 				row.find("td:first br:last").replaceWith(kwButton);
 			}
 		}
@@ -1634,12 +1637,9 @@ showKeywords = function(el,row,fid) {
 		table.find("tr:first").append(jQ("<th id='theasis_myUploads_keywords_column_head'>Main Keywords</th>"));
 		table.find("tr:gt(0)").append(jQ("<td class='theasis_keywords'></td>"));
 	}
-	el.attr('src','http://i.istockimg.com/static/images/loading.gif').css({width:'12px',height:'12px'});
+	el.attr('src','//i.istockimg.com/static/images/loading.gif').css({width:'12px',height:'12px'});
 	var kwCell = row.find("td.theasis_keywords:first");
-	jQ.ajax({
-		url:"/stock-"+fid+"-.php",
-		success:function(data){updateKeywords(kwCell,data,el);}
-	});
+	getFileDataThenCallback(fid,updateKeywords,[kwCell,el]);
 };
 addContribPageLinks = function(userID,paraText,removeText,wrapper,onDetailPage) {
 	var links = {
@@ -1705,25 +1705,25 @@ var toolBarSaleTextId="theasisToolbarLatestThumbnailText";
 var toolBarSaleSize="theasisToolbarLatestSize";
 showLatestSale = function() {
 	var lastThumbFileId=arrayFromIdStr(GM_getValue(toolBarSaleThumbFileId,""));
-//	debug("showLatestSale: lastThumbFileId=" + lastThumbFileId);
+	debug("showLatestSale: lastThumbFileId=" + lastThumbFileId);
 	var lastThumbImg=GM_getValue(toolBarSaleThumbId,"");
 	var lastThumbTitle=GM_getValue(toolBarSaleTitleId,"");
-//	debug("showLatestSale: lastThumbTitle=" + lastThumbTitle);
+	debug("showLatestSale: lastThumbTitle=" + lastThumbTitle);
 	var lastThumbText=GM_getValue(toolBarSaleTextId,"<a href='#'>Loading...</a>");
 	var img = lastThumbImg ?
-		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
-		jQ("<img>").attr({id:toolBarSaleThumbId,"src":'http://i.istockimg.com/static/images/blank.gif'});
+		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle","margin-top":"-4px"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
+		jQ("<img>").attr({id:toolBarSaleThumbId,"src":'//i.istockimg.com/static/images/blank.gif'});
 	var a = jQ("<a>").attr({href:"#"}).css({color:"#aaa","font-weight":"normal","font-size":"90%"}).append(img);
 	var txt = jQ("<span>").attr({id:toolBarSaleTextId}).html(lastThumbText);
 	var container=jQ("#"+toolBarSaleTargetId);
 	if (!container.length) {
-		jQ("#tbContentLeft").append(jQ("<img src='http://i.istockimg.com/static/images/blank.gif' class='sptWhiteSeparatorVertical m'>")).append(jQ("<span><audio id='theasis_newSaleAudio' src='http://theasis.myzen.co.uk/Highwire.ogg'/>Last DL: </span>").attr({id:toolBarSaleTargetId}).css({color:"#fff"}).append(a).append(txt));
+		jQ("#tbContentLeft").append(jQ("<img src='//i.istockimg.com/static/images/blank.gif' class='sptWhiteSeparatorVertical m'>")).append(jQ("<span><audio id='theasis_newSaleAudio' src='http://theasis.myzen.co.uk/Highwire.ogg'/>Last DL: </span>").attr({id:toolBarSaleTargetId}).css({color:"#fff"}).append(a).append(txt));
 	} else {
 		container.empty().html("<audio id='theasis_newSaleAudio' src='http://theasis.myzen.co.uk/Highwire.ogg'/>Last DL: ").append(a).append(txt);
 	}
 //	jQ("#"+toolBarSaleLoadingId).fadeOut(5000);
 	jQ.ajax({
-		url:"http://www.istockphoto.com/my_uploads.php?page=1&order=LastDownload",
+		url:"//www.istockphoto.com/my_uploads.php?page=1&order=LastDownload",
 		success:processLatestSale
 	});
 };
@@ -1802,7 +1802,7 @@ processLatestSale = function(data) {
 	});
 	var fid = idFromIdPlusType(fileId[0]);
 	GM_setValue(toolBarSaleThumbFileId,strFromIdArray(fileId));
-	var saleUrl="http://www.istockphoto.com/file_downloads.php?PageSetting=&page=1&order=PurchaseTimeDESC&id="+fid;
+	var saleUrl="//www.istockphoto.com/file_downloads.php?PageSetting=&page=1&order=PurchaseTimeDESC&id="+fid;
 	debug("processLatestSale: saleUrl=" + saleUrl);
 	var thumbUrl = file.attr("src");
 	debug("processLatestSale: thumbUrl=" + thumbUrl);
@@ -1838,7 +1838,7 @@ processLatestSaleDetails = function(data) {
 	var sp = "&nbsp;"
 	var saleSize = jQ.trim(cols.eq(1).text());
 	var royalty = jQ.trim(cols.eq(3).text().replace("USD",""));
-	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='http://www.istockphoto.com/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='//www.istockphoto.com/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
 	GM_setValue(toolBarSaleSize,saleSize);
 	GM_setValue(toolBarSaleTextId,saleText);
 	debug("processLatestSaleDetails: saleSize=" + saleSize);
@@ -1852,19 +1852,32 @@ processLatestSaleDetails = function(data) {
 	}
 	target.html(sale);
 	if (getVal("showELInToolbar")) {
-		var elUrl="http://www.istockphoto.com/file_downloads.php?PageSetting=ExtendedLicense&page=1&order=Date&id="+fid;
+		var elUrl="//www.istockphoto.com/file_downloads.php?PageSetting=ExtendedLicense&page=1&order=Date&id="+fid;
 		jQ.ajax({
 			url:elUrl,
 			success:processLatestELDetails
 		});
 	}
 	if (getVal("showRCsInToolbar")) {
-		var priceUrl="http://www.istockphoto.com/stock-photo-"+fid+"-.php";
-		jQ.ajax({
-			url:priceUrl,
-			success:function(data){processLatestRCDetails(data,royalty.substring(1),ftype);}
-		});
+		getFileDataThenCallback(fid,processLatestRCDetails,[royalty.substring(1),ftype]);
 	}
+};
+getFileDataThenCallback = function(fid,callback,params) {
+	jQ.ajax({
+		url:"https://rest.istockphoto.com/api/v1/assets/convert/afid/"+fid,
+		dataType: "json",
+		success:function(data){
+			if (data && data.gettyMasterId) {
+				jQ.ajax({
+					url:"https://rest.istockphoto.com/api/v1/assets/"+data.gettyMasterId,
+					dataType: "json",
+					success:function(data){
+						callback(data,params);
+					}
+				});
+			}
+		}
+	});
 };
 processLatestELDetails = function(data) {
 	var target=jQ("#theasisToolBarLatestDownloadTextContainer");
@@ -1879,14 +1892,14 @@ processLatestELDetails = function(data) {
 	var thisSaleTime=cols.eq(1).text().substr(10,9);
 	var seenval=thumbUrl+thisSaleDate+thisSaleTime;
 	var sp = "&nbsp;"
-	var saleText = "<br/>" + "<a href='http://www.istockphoto.com/license_earnings.php?order=dateDesc&page=1' style='white-space:nowrap;'>" + sp + date + sp + "<i>EL</i>" + sp + jQ.trim(cols.eq(3).text().replace("USD",""));
+	var saleText = "<br/>" + "<a href='//www.istockphoto.com/license_earnings.php?order=dateDesc&page=1' style='white-space:nowrap;'>" + sp + date + sp + "<i>EL</i>" + sp + jQ.trim(cols.eq(3).text().replace("USD",""));
 	var sale = jQ("<span>" + saleText + "</span>").css({color:"#aaa","font-weight":"normal","line-height":"21px"});
 	target.append(sale);
 	target.css({"vertical-align":"top"});
 };
 fileRCLUT={};
 loadFileRCLUT = function(fid) {
-	var priceUrl="http://www.istockphoto.com/manage/file-closeup/index/stock-photo-"+fid+"-.php";
+	var priceUrl="//www.istockphoto.com/manage/file-closeup/index/stock-photo-"+fid+"-.php";
 		jQ.ajax({
 			url:priceUrl,
 			success:processFileRCDetails
@@ -1909,13 +1922,14 @@ extractRCsFromFileData = function(data) {
 	}
 	return 0;
 };
-processLatestRCDetails = function(data,royaltyStr,ftype) {
+processLatestRCDetails = function(data,params) {
+	var royaltyStr=params[0];
+	var ftype=params[1];
 	debug("ftype:"+ftype);
 	ftype=parseInt(ftype,10);
 	var royalty = parseFloat(royaltyStr);
 	debug("ProcessLatestRCDetails: royalty " + royalty + " str " + royaltyStr);
-	var html = jQ(data);
-	var numCredits=extractRCsFromFileData(data);
+	var numCredits=data.standardPriceInCredits*RC_MULTIPLIER;
 	if (numCredits) {
 		var target=jQ("#theasisToolBarLatestDownloadTextLink");
 		target.text(target.text() + " " + numCredits + "RCs");
@@ -2057,7 +2071,7 @@ loadRecentSales = function() {
 		var cols = jQ(this).children("td");
 		var target = cols.eq(columns.lastdl.position);
 		var a = cols.eq(columns.dls.position).children("a:first");
-		var loading = jQ("<div><img src='http://i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
+		var loading = jQ("<div><img src='//i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
 		if (a.length==0) {
 			var href = cols.eq(columns.file.position).children("a:first").attr("href");
 			var match = /id=(\d+)/.exec(href);
@@ -2081,7 +2095,7 @@ loadRecentSubs = function() {
 		var cols = jQ(this).children("td");
 		var target = cols.eq(5);
 		var fid = cols.eq(1).children("a:first").text();
-		var loading = jQ("<div><img src='http://i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
+		var loading = jQ("<div><img src='//i.istockimg.com/static/images/loading.gif' style='width:12px;height:12px;'}/></div>");
 		if (fid) {
 			var href = "/file_downloads.php?PageSetting=Subscriptions&id="+fid;
 			loading.attr({id:"theasis_recentSubs_target"+fid}).appendTo(target);
@@ -2294,7 +2308,7 @@ checkInspectionStatus = function(href,id) {
 			if (fullPage.length) {
 				if (fullPage.find("form").length==0 && fullPage.find("p").length) {
 					// locked
-					target.html("<img src='http://i.istockimg.com/static/images/blank.gif' width='12' height='12' class='icons lock'><span>Locked</span>");
+					target.html("<img src='//i.istockimg.com/static/images/blank.gif' width='12' height='12' class='icons lock'><span>Locked</span>");
 				} else {
 					var vettaNomCheckbox = fullPage.find("#premiereNominationCheckbox");
 					if (vettaNomCheckbox.length>0 && vettaNomCheckbox.prop('checked')) {
@@ -2953,14 +2967,14 @@ noGMConflict = function() {
 	}
 	return ok;
 };
-loggedInUser = function() {
+loggedInUser = function(data) {
     var id=null;
     try {
-		id = jQ("#myUploadsUserID").val();
+		id = jQ("#myUploadsUserID",data).val();
     } catch(e) {
 		// don't care
     }
-	if ( !id && jQ("#headerLogout").length>0 ) {
+	if ( !id && jQ("#headerLogout",data).length>0 ) {
 		//don't know who we are, but we seem to be logged in!
 		id = -1;
 	}
@@ -3089,7 +3103,7 @@ doUnfinishedUploads = function(html,loc) { // look for any "Unfinished Uploads, 
 				var id=match[1];
 				jQ(this).after(jQ("<span id='theasis_cancelUnfinished_"+id+"' class='btnCta0' title='Cancel upload'>Cancel</span>").css({"font-size":"0.8em","margin-left":"10px",cursor:"pointer"}).click(function(){
 					var el=jQ("#theasis_cancelUnfinished_"+id);
-					el.after(jQ("<img id='theasis_cancelling_"+id+"' src='http://i.istockimg.com/static/images/loading.gif' title='cancelling'>"));
+					el.after(jQ("<img id='theasis_cancelling_"+id+"' src='//i.istockimg.com/static/images/loading.gif' title='cancelling'>"));
 					el.hide();
 					el.prev().hide();
 					jQ.get("/file_upload.php?FormName=cancel&fileID="+id, function(data) {
@@ -3109,7 +3123,7 @@ doUnfinishedUploads = function(html,loc) { // look for any "Unfinished Uploads, 
 	}
 };
 doUnfinishedOnMyUploads = function() {
-	var unfinishedDiv=jQ("<div id='theasis_unfinishedUploadsContainer'><div><img src='http://i.istockimg.com/static/images/loading.gif' width='15' height='15' title='Loading' alt='Loading'>&nbsp;Checking unfinished uploads...</div></div>");
+	var unfinishedDiv=jQ("<div id='theasis_unfinishedUploadsContainer'><div><img src='://i.istockimg.com/static/images/loading.gif' width='15' height='15' title='Loading' alt='Loading'>&nbsp;Checking unfinished uploads...</div></div>");
 	unfinishedDiv.insertAfter("div.paginator:first");
 	jQ.ajax({
 		url:"/xnet.php",
@@ -3194,7 +3208,7 @@ var workerBlob= new Blob(['\
 				"&ajax_action=" + encodeURIComponent("GetContent") +\
 				"&ContainerName=" + encodeURIComponent("Info") +\
 				"&ShowTab=" + encodeURIComponent(event.data);\
-			xhr.open("POST","http://www.istockphoto.com/ajax_tabcontroller.php",true);\
+			xhr.open("POST","//www.istockphoto.com/ajax_tabcontroller.php",true);\
 			xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");\
 			xhr.send(params);\
 			postMessage("theasisWorker sent");\
@@ -3403,7 +3417,7 @@ showGridview=function(){
 	var container=jQ('<div id="theasis_Gridview">');
 //	jQ('#cntnt').css('width','2000px');
 //	jQ('#mncntnt').css('width','');
-	jQ('h1.ImTheHead').text('Image subscription - Month Gridview').after(jQ('<div><span id="theasis_gridview_count">0 files</span><img id="theasis_gridview_loading" src="http://i.istockimg.com/static/images/loading.gif" width="12px" height="12px"></div>'));;
+	jQ('h1.ImTheHead').text('Image subscription - Month Gridview').after(jQ('<div><span id="theasis_gridview_count">0 files</span><img id="theasis_gridview_loading" src="//i.istockimg.com/static/images/loading.gif" width="12px" height="12px"></div>'));;
 	jQ('#showGridviewButton').remove();
 	jQ('div.paginator').remove();
 	jQ('tr.my-uploads-row:first').parent().parent().remove();
@@ -3417,98 +3431,228 @@ showGridviewButton=function(){
 	var target=jQ("h1.ImTheHead:first");
 	target.after(button);
 };
-//////////////////////////////////////////////////////
-setDebugMode();
-var userID=loggedInUser();
-if (noGMConflict() && userID) {
-	
-	var loc = window.location.pathname;
+ensureToolbarExists=function(preInit){
+	var toolbar = jQ("#toolbar");
+	if (toolbar.length<1) {
+		toolbar = jQ("<div id='toolbar' class='theasisReplacementToolbar'><div id='tbContentLeft'></div><div id='tbContentRight'><a href='/forums.php'>Forum</a><a id='toolbar-lightbox' href='/my-account/lightbox?orderBy=CreationDate&order=DESC' style='margin-left: 1em;'>LBs</a></div></div>");
+		toolbar.appendTo("body");
+		if (preInit) {
+			jQ("#tbContentLeft").append(preInit.html());
+		}
+	}
+};
+loadDlDetails = function(dlType,dlTarget,dateTarget,id) {
+	var url='http://www.istockphoto.com/file_downloads.php?id='+id+'&order=Date&PageSetting='+dlType;
+	jQ.ajax(url)
+		.done(function(data) {
+			var html=jQ(data);
+			var dispText=jQ("div.paginator:first div.fl",html).text();
+			var numMatch = dispText.match(/of\s+(\d+)\s+match/);
+			var result=0;
+			var lastSale="";
+			if (numMatch) {
+				result=parseInt(numMatch[1]);
+				lastSale=jQ("div.rnd table tr:eq(1) td:eq(0)",html).text();
+				if (lastSale.match(/^\s*$/)) {
+					lastSale=jQ("div.rnd table tr:eq(1) td:eq(1)",html).text();
+				}
+				var match = lastSale.match(/(\d+\/\d+\/\d+)/);
+				if (match) {
+					lastSale=match[1];
+				} else {
+					lastSale="??";
+				}
+			}
+			jQ("#"+dlTarget).text(result);
+			jQ("#"+dateTarget).text(lastSale);
+			var totalContainer=jQ("#theasis_dlDetails_total");
+			var total=parseInt(totalContainer.text())+result;
+			totalContainer.html("<b>"+total+"</b>");
+		})
+		.fail(function() { jQ("#"+target).text("--"); });
+};
+showDlDetails = function(id,container) {
+	var isVideo=loc.match(/^\/video\//)!=null;
+	var isAudio=loc.match(/^\/audio\//)!=null;
+	var img="<img src='http://i.istockimg.com/static/images/loading.gif' style='width: 10px; height: 10px;'/>";
+	var dlTable=jQ("<table id='theasis_dlDetlailsTable' class='theasis_detailsTable'>"
+				+ "<tr class='theasis_dlDetlailsTable_row_a'><th>Sale Type</th><th>Count</th><th>Last Sale</th></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>Regular DLs</td><td id='theasis_dlDetails_regular'>"+img+"</td><td id='theasis_dlDetails_regular_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_a'><td>Subs</td><td id='theasis_dlDetails_subs'>"+img+"</td><td id='theasis_dlDetails_subs_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>ELs</td><td id='theasis_dlDetails_els'>"+img+"</td><td id='theasis_dlDetails_els_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_a'><td>Partner</td><td id='theasis_dlDetails_pp'>"+((isVideo||isAudio)?"--":img)+"</td><td id='theasis_dlDetails_pp_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>Getty</td><td id='theasis_dlDetails_gi'>"+(isAudio?"--":img)+"</td><td id='theasis_dlDetails_gi_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable_row_a'><td><b>Total</b></td><td id='theasis_dlDetails_total'>0</td><td></td></tr>"
+				+ "</table>").css({"margin-bottom":"1ex"});
+	container.before(dlTable);
+	loadDlDetails('','theasis_dlDetails_regular','theasis_dlDetails_regular_date',id);
+	loadDlDetails('Subscriptions','theasis_dlDetails_subs','theasis_dlDetails_subs_date',id);
+	loadDlDetails('ExtendedLicense','theasis_dlDetails_els','theasis_dlDetails_els_date',id);
+	if (!isVideo && !isAudio) {
+		loadDlDetails('PartnerProgram','theasis_dlDetails_pp','theasis_dlDetails_pp_date',id);
+	}
+	if (!isAudio) {
+		loadDlDetails('GISales','theasis_dlDetails_gi','theasis_dlDetails_gi_date',id);
+	}
+};
+doCloseupPage=function(){
+	var manageLink=jQ("#asset-administration");
+	if (manageLink.length>0 && manageLink.is(":visible")) {
+		addCloseupPageExtras();
+	}
+};
+addCloseupPageExtras=function(){
+	var match = loc.match(/.*-(\d+)/);
+	if (match.length>1) {
+		var fid = match[1];
+		var edit=jQ("<button class='btnCtal theasis_btnCtal' style='background-color: #a2e3d8; cursor: pointer'>Edit File</button>").click(function(){location.href='/file_closeup_edit.php?id='+fid;});
+		var details=jQ("<button class='btnCtal theasis_btnCtal' style='background-color: #a2e3d8; cursor: pointer'>DL History</button>").click(function(){location.href='/file_downloads.php?id='+fid;});
+		var deactivate=jQ("<button class='btnCta0 theasis_btnCta0' style='background-color: #e38282; cursor: pointer'>Deactivate</button>").click(function(){location.href='/file_status_change.php?id='+fid;});
+		var target=jQ("div.adp-contributor-name").parent();
+		var container = jQ("<div id='theasis_adp_extras_container'/>");
+		container.html(edit);
+		container.append(details);
+		container.append(deactivate);
+		target.before(container);
+		showDlDetails(fid,container);
+	}
+};
+var loc;
+doInit=function(preInit){
+	var initResult=false;
+	setDebugMode();
+	userID=userID||loggedInUser();
+	if (noGMConflict() && userID) {
+		initResult=true;
+		loc = window.location.pathname;
 
-	var onDetailPage = loc.indexOf("/my_uploads.php")>-1;
-  var onSubPage = loc.indexOf("/my_uploads_subscription.php")>-1;
-  var onImgSubPage = loc.indexOf("/my-uploads/subscriptions")>-1;
-	var onELPage = loc.indexOf("/license_info.php")>-1;
-	var onELEarningsPage = loc.indexOf("/license_earnings.php")>-1;
-	var onDesignPage = loc.indexOf("/design_info.php")>-1;
-	var onLBPage = loc.indexOf("/my-account/lightbox")>-1;
-//	var onPlusPage = loc.indexOf("/my_uploads_pricepoint.php")>-1;
-	var onPartnerPage = loc.indexOf("/my_uploads_partner_program.php")>-1;
-	var onGettyPage = loc.indexOf("/my-uploads/gisales")>-1;
-	var onOldUrlFormatPage = loc.indexOf(".php")>-1;
-	var onXnetPage = loc.indexOf("/xnet.php")>-1;
-	var onDLHistoryPage = loc.indexOf("/download-history")>-1;
-	var onMyDLPage = loc.indexOf("/my_downloads.php")>-1;
-	var onPortfolioPage = loc.indexOf("/search/portfolio/")>-1;
-	var onForumsPage = loc.indexOf("/forum_messages.php")>-1;
-	
-	noteOriginalBalance();
-	loadRoyaltyRates();
-	if ( getVal("showRCsInToolbar")) {
-		processRoyaltyRates();
-	}
-	
-	var myUploads = onDetailPage || onSubPage || onELPage || onELEarningsPage || onDesignPage || onPartnerPage || onGettyPage || onDLHistoryPage || onMyDLPage || onImgSubPage;
-	
-	doStyle();
-	if (getVal("sortLBPage")) {
-		jQ('#toolbar-lightbox').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
-		jQ('#lclnv a[href$="/lightbox"').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
-	}
-	if (myUploads) {
-		if (onDetailPage) {
-			reformatCollections();
-			if (getVal("unfinishedOnMyUploads") && jQ(".paginator:first .currentPage:first").text()=="1") {
-				doUnfinishedOnMyUploads();
+		var onDetailPage = loc.indexOf("/my_uploads.php")>-1;
+	  var onSubPage = loc.indexOf("/my_uploads_subscription.php")>-1;
+	  var onImgSubPage = loc.indexOf("/my-uploads/subscriptions")>-1;
+		var onELPage = loc.indexOf("/license_info.php")>-1;
+		var onELEarningsPage = loc.indexOf("/license_earnings.php")>-1;
+		var onDesignPage = loc.indexOf("/design_info.php")>-1;
+		var onLBPage = loc.indexOf("/my-account/lightbox")>-1;
+	//	var onPlusPage = loc.indexOf("/my_uploads_pricepoint.php")>-1;
+		var onPartnerPage = loc.indexOf("/my_uploads_partner_program.php")>-1;
+		var onGettyPage = loc.indexOf("/my-uploads/gisales")>-1;
+		var onOldUrlFormatPage = loc.indexOf(".php")>-1;
+		var onXnetPage = loc.indexOf("/xnet.php")>-1;
+		var onDLHistoryPage = loc.indexOf("/download-history")>-1;
+		var onMyDLPage = loc.indexOf("/my_downloads.php")>-1;
+		var onPortfolioPage = loc.indexOf("/search/portfolio/")>-1;
+		var onForumsPage = loc.indexOf("/forum_messages.php")>-1;
+		var onCloseupPage = /\/(photo|video|vector|audio)\//.test(loc);
+		
+		noteOriginalBalance();
+		loadRoyaltyRates();
+		if ( getVal("showRCsInToolbar")) {
+			processRoyaltyRates();
+		}
+		
+		var myUploads = onDetailPage || onSubPage || onELPage || onELEarningsPage || onDesignPage || onPartnerPage || onGettyPage || onDLHistoryPage || onMyDLPage || onImgSubPage;
+		
+		doStyle();
+		ensureToolbarExists(preInit);
+		if (getVal("sortLBPage")) {
+			jQ('#toolbar-lightbox').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
+			jQ('#lclnv a[href$="/lightbox"').attr("href","/my-account/lightbox?orderBy=CreationDate&order=DESC");
+		}
+		if (myUploads) {
+			if (onDetailPage) {
+				reformatCollections();
+				if (getVal("unfinishedOnMyUploads") && jQ(".paginator:first .currentPage:first").text()=="1") {
+					doUnfinishedOnMyUploads();
+				}
+			}
+			findColumns();
+			if (onDetailPage) {
+				markTodaysSales();
+			}
+			reformatDates();
+			fixBasicTableDetails();
+			if (onDetailPage) {
+				openDb();
+				analyseSales();
+				fixTableDetails();
+	//			repositionLastDl();
+			}
+			if (onPartnerPage) {
+				fixTablePP();
+			}
+			if (onGettyPage) {
+				fixTableGI();
+			}
+			resizeThumbs(onGettyPage,onMyDLPage);
+			if (onDetailPage) {
+				prepareSettingsDiv();
+				showColumns();
+				prepareNextPage();
+				doKeywordsLinks();
+			} 
+			var paraText= (onDesignPage || onELPage) ? true : false;
+			var removeText= (onGettyPage || onELEarningsPage || onDLHistoryPage || onMyDLPage) ? false : true;
+			var wrapper= onGettyPage||onImgSubPage ? false : true;
+			addContribPageLinks(userID,paraText,removeText,wrapper,onDetailPage);
+			if (onImgSubPage) {
+				reformatSubsDates();
+				fixSubTableDetails();
+				showGridviewButton();
 			}
 		}
-		findColumns();
-		if (onDetailPage) {
-			markTodaysSales();
+		if (onLBPage) {
+			openLBDb();
 		}
-		reformatDates();
-		fixBasicTableDetails();
-		if (onDetailPage) {
-			openDb();
-			analyseSales();
-			fixTableDetails();
-//			repositionLastDl();
+		if (onXnetPage) {
+			doXnet();
 		}
-		if (onPartnerPage) {
-			fixTablePP();
+		if (getVal("showSaleInToolbar")) {
+			showLatestSale();
 		}
-		if (onGettyPage) {
-			fixTableGI();
+		if (onCloseupPage) {
+			doCloseupPage();
 		}
-		resizeThumbs(onGettyPage,onMyDLPage);
-		if (onDetailPage) {
-			prepareSettingsDiv();
-			showColumns();
-			prepareNextPage();
-			doKeywordsLinks();
-		} 
-		var paraText= (onDesignPage || onELPage) ? true : false;
-		var removeText= (onGettyPage || onELEarningsPage || onDLHistoryPage || onMyDLPage) ? false : true;
-		var wrapper= onGettyPage||onImgSubPage ? false : true;
-		addContribPageLinks(userID,paraText,removeText,wrapper,onDetailPage);
-		if (onImgSubPage) {
-			reformatSubsDates();
-			fixSubTableDetails();
-			showGridviewButton();
+		
+		if (getVal("checkForNewSales")) {
+			checkBalance();
 		}
 	}
-	if (onLBPage) {
-		openLBDb();
+	return initResult;
+};
+function getPreInitData(data) {
+	var tb;
+	var sepDiv=jQ('<div class="theasis_toolbarSeparator"/>');
+	var html=jQ(data);
+	userID=loggedInUser(html);
+	var avatar=jQ("#toolbarAvatar",html);
+	if (avatar.length) {
+		tb=jQ("<div id='theasis_preInitData'/>");
+		avatar.children().css({'padding':'4px'});
+		tb.append(avatar);
+		var uploadsLink=jQ('<a id="toolbarUploads" href="//www.istockphoto.com/my_uploads.php" style="color: rgb(238, 238, 238);"><img src="https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&amp;chld=|14|000|glyphish_toolbox|16|eeeeee|FFF" class="m" style="width: 25px; height: 13px;"></a>');
+		tb.append(sepDiv.clone());
+		tb.append(jQ("#toolbarSitemailSpan",html));
+		tb.append(sepDiv.clone());
+		tb.append(jQ("#toolbarBalance",html).css({'padding':'4px','color':'rgb(238,238,238)','font-size':'80%'}));
+		tb.append(sepDiv.clone());
+		tb.append(uploadsLink);
+		tb.append(sepDiv.clone());
+		jQ("#toolbarSitemail img",tb).attr('src','https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&chld=|14|000|glyphish_envelope|16|eeeeee|FFF').css({width:'25px',height:'13px'});
+	} else {
+		doError("No toolbar");
 	}
-	if (onXnetPage) {
-		doXnet();
-	}
-	if (getVal("showSaleInToolbar")) {
-		showLatestSale();
-	}
-	if (getVal("checkForNewSales")) {
-		checkBalance();
-	}
+	return tb;
 }
+//////////////////////////////////////////////////////
+var userID;
+if (!doInit()){
+	jQ.get(toolbarUrl)
+		.done(
+			function(data){doInit(getPreInitData(data));}
+		);
+}
+
+
 ////////////////////////////////////////////
 
 }
