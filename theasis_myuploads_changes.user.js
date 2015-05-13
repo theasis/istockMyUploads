@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.9
+// @version	   2.0.10
 // iStockPhoto greasemonkey script (c) Martin McCarthy 2013
 // ==/UserScript==
 // v1.0.1
@@ -237,8 +237,8 @@
 // v1.1.52
 // Martin McCarthy 13 Jan 2015
 // PP Fixes
-// v2.0.0
-// Martin McCarthy 9 Apr 2015
+// v2.0.0-v2.0.10
+// Martin McCarthy 9 Apr 2015 - 13 May 2015
 // New ADP
 
 // TZ nonsense
@@ -1163,7 +1163,7 @@ genericAddViews=function(obj,storeName) {
 doStyle = function () {
 	var el = jQ("#theasis_myUploads_style");
 	if (el.length<1) {
-		jQ("<style type='text/css' id='theasis_myUploads_style'>body {padding-bottom:40px;} .theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;} .theasisReplacementToolbar {min-width: 900px; height: 43px; z-index: 5000; position: fixed; left: 25px; right: 25px; bottom: 0; background: #111; opacity: 0.9; line-height: 43px; border-radius: 5px 5px 0 0; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;} .theasisReplacementToolbar #tbContentLeft {float: left; margin-left: 12px;} .theasisReplacementToolbar #tbContentRight {text-align: right; margin-right: 12px;}  .theasis_toolbarSeparator {width: 0px; height: 20px; border-left: 1px dotted #666; display: inline; margin-left: 8px; margin-right: 8px;} .theasisReplacementToolbar a {color: #e3e3e3;} #theasis_myUploads_loupe {background: rgba(240,240,240,0.95); color: #333; padding: 10px; border: solid 3px rgba(180,180,180,0.5); z-index:1000; -moz-box-shadow: 4px 4px 4px rgba(0,0,0,0.6); --box-shadow: 4px 4px 4px rgba(0,0,0,0.6); box-shadow: 4px 4px 4px rgba(0,0,0,0.6); border-radius: 5px;} .theasis_loupe_title_text {font-size: 14px;} .theasis_loupe_dls_text {font-size: 12px;font-weight:bold;color:black;background:rgba(240,240,240,0.2);text-shadow:-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white;border-radius:5px;overflow:hidden;padding:4px; margin: 0;} .theasis_detailsTable { border: 1px solid #000;} .theasis_detailsTable tr { border: 1px dotted #02a388; } .theasis_detailsTable td:first-child { padding: 2px 7px 2px 7px;} .theasis_detailsTable td { font-size: 85%; padding: 2px 7px 2px 7px;} .theasis_dlDetlailsTable_row_a { background-color:#a2e3d8; }</style>").appendTo("head");
+		jQ("<style type='text/css' id='theasis_myUploads_style'>body {padding-bottom:40px;} .theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;} .theasisReplacementToolbar {min-width: 900px; height: 43px; z-index: 5000; position: fixed; left: 25px; right: 25px; bottom: 0; background: #111; opacity: 0.9; line-height: 43px; border-radius: 5px 5px 0 0; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;} .theasisReplacementToolbar #tbContentLeft {float: left; margin-left: 12px;} .theasisReplacementToolbar #tbContentRight {text-align: right; margin-right: 12px;}  .theasis_toolbarSeparator {width: 0px; height: 20px; border-left: 1px dotted #666; display: inline; margin-left: 8px; margin-right: 8px;} .theasisReplacementToolbar a {color: #e3e3e3;} #theasis_myUploads_loupe {background: rgba(240,240,240,0.95); color: #333; padding: 10px; border: solid 3px rgba(180,180,180,0.5); z-index:1000; -moz-box-shadow: 4px 4px 4px rgba(0,0,0,0.6); --box-shadow: 4px 4px 4px rgba(0,0,0,0.6); box-shadow: 4px 4px 4px rgba(0,0,0,0.6); border-radius: 5px;} .theasis_loupe_title_text {font-size: 14px;} .theasis_loupe_dls_text {font-size: 12px;font-weight:bold;color:black;background:rgba(240,240,240,0.2);text-shadow:-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white;border-radius:5px;overflow:hidden;padding:4px; margin: 0;} .theasis_detailsTable { border: 1px solid #000;} .theasis_detailsTable tr { border: 1px dotted #02a388; } .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_dlDetlailsTable2_row_a { background-color:#ddd; padding: 2px; } .theasis_button { box-shadow: 0px 1px 1px 0px #1564ad; background: linear-gradient(to bottom, #a2e3d8 5%, #92d3c8 100%); background-color: #a2e3d8; border-radius:4px; border:1px solid #a2e3d8; cursor:pointer; color:#333;font-size:0.7rem;font-weight:bold;padding:4px 10px; text-decoration:none; text-shadow:0px 1px 0px #528ecc; margin-right:0.5ex;} .theasis_button:hover { background: linear-gradient(to bottom, #92d3c8 5%, #a2e3d8 100%);} .theasis_redbutton { box-shadow: 0px 1px 1px 0px #8a2a21; background: linear-gradient(to bottom, #f24437 5%, #c62d1f 100%); color:#fff; background-color: #c62d1f; border:1px solid #d02718; text-shadow:0px 1px 0px #810e05;}.theasis_redbutton:hover { background: linear-gradient(to bottom, #c62d1f 5%, #f24437 100%);} </style>").appendTo("head");
 	}
 };
 // processRoyaltyRates()
@@ -1802,7 +1802,7 @@ processLatestSale = function(data) {
 	});
 	var fid = idFromIdPlusType(fileId[0]);
 	GM_setValue(toolBarSaleThumbFileId,strFromIdArray(fileId));
-	var saleUrl="//www.istockphoto.com/file_downloads.php?PageSetting=&page=1&order=PurchaseTimeDESC&id="+fid;
+	var saleUrl="/file_downloads.php?PageSetting=&page=1&order=PurchaseTimeDESC&id="+fid;
 	debug("processLatestSale: saleUrl=" + saleUrl);
 	var thumbUrl = file.attr("src");
 	debug("processLatestSale: thumbUrl=" + thumbUrl);
@@ -1838,7 +1838,7 @@ processLatestSaleDetails = function(data) {
 	var sp = "&nbsp;"
 	var saleSize = jQ.trim(cols.eq(1).text());
 	var royalty = jQ.trim(cols.eq(3).text().replace("USD",""));
-	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='//www.istockphoto.com/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
 	GM_setValue(toolBarSaleSize,saleSize);
 	GM_setValue(toolBarSaleTextId,saleText);
 	debug("processLatestSaleDetails: saleSize=" + saleSize);
@@ -1892,7 +1892,7 @@ processLatestELDetails = function(data) {
 	var thisSaleTime=cols.eq(1).text().substr(10,9);
 	var seenval=thumbUrl+thisSaleDate+thisSaleTime;
 	var sp = "&nbsp;"
-	var saleText = "<br/>" + "<a href='//www.istockphoto.com/license_earnings.php?order=dateDesc&page=1' style='white-space:nowrap;'>" + sp + date + sp + "<i>EL</i>" + sp + jQ.trim(cols.eq(3).text().replace("USD",""));
+	var saleText = "<br/>" + "<a href='/license_earnings.php?order=dateDesc&page=1' style='white-space:nowrap;'>" + sp + date + sp + "<i>EL</i>" + sp + jQ.trim(cols.eq(3).text().replace("USD",""));
 	var sale = jQ("<span>" + saleText + "</span>").css({color:"#aaa","font-weight":"normal","line-height":"21px"});
 	target.append(sale);
 	target.css({"vertical-align":"top"});
@@ -3123,7 +3123,7 @@ doUnfinishedUploads = function(html,loc) { // look for any "Unfinished Uploads, 
 	}
 };
 doUnfinishedOnMyUploads = function() {
-	var unfinishedDiv=jQ("<div id='theasis_unfinishedUploadsContainer'><div><img src='://i.istockimg.com/static/images/loading.gif' width='15' height='15' title='Loading' alt='Loading'>&nbsp;Checking unfinished uploads...</div></div>");
+	var unfinishedDiv=jQ("<div id='theasis_unfinishedUploadsContainer'><div><img src='//i.istockimg.com/static/images/loading.gif' width='15' height='15' title='Loading' alt='Loading'>&nbsp;Checking unfinished uploads...</div></div>");
 	unfinishedDiv.insertAfter("div.paginator:first");
 	jQ.ajax({
 		url:"/xnet.php",
@@ -3442,7 +3442,7 @@ ensureToolbarExists=function(preInit){
 	}
 };
 loadDlDetails = function(dlType,dlTarget,dateTarget,id) {
-	var url='http://www.istockphoto.com/file_downloads.php?id='+id+'&order=Date&PageSetting='+dlType;
+	var url='//www.istockphoto.com/file_downloads.php?id='+id+'&order=Date&PageSetting='+dlType;
 	jQ.ajax(url)
 		.done(function(data) {
 			var html=jQ(data);
@@ -3474,15 +3474,15 @@ loadDlDetails = function(dlType,dlTarget,dateTarget,id) {
 showDlDetails = function(id,container) {
 	var isVideo=loc.match(/^\/video\//)!=null;
 	var isAudio=loc.match(/^\/audio\//)!=null;
-	var img="<img src='http://i.istockimg.com/static/images/loading.gif' style='width: 10px; height: 10px;'/>";
-	var dlTable=jQ("<table id='theasis_dlDetlailsTable' class='theasis_detailsTable'>"
-				+ "<tr class='theasis_dlDetlailsTable_row_a'><th>Sale Type</th><th>Count</th><th>Last Sale</th></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>Regular DLs</td><td id='theasis_dlDetails_regular'>"+img+"</td><td id='theasis_dlDetails_regular_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_a'><td>Subs</td><td id='theasis_dlDetails_subs'>"+img+"</td><td id='theasis_dlDetails_subs_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>ELs</td><td id='theasis_dlDetails_els'>"+img+"</td><td id='theasis_dlDetails_els_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_a'><td>Partner</td><td id='theasis_dlDetails_pp'>"+((isVideo||isAudio)?"--":img)+"</td><td id='theasis_dlDetails_pp_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_b'><td>Getty</td><td id='theasis_dlDetails_gi'>"+(isAudio?"--":img)+"</td><td id='theasis_dlDetails_gi_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable_row_a'><td><b>Total</b></td><td id='theasis_dlDetails_total'>0</td><td></td></tr>"
+	var img="<img src='//i.istockimg.com/static/images/loading.gif' style='width: 10px; height: 10px;'/>";
+	var dlTable=jQ("<table id='theasis_dlDetlailsTable2' class='theasis_detailsTable'>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_a'><th>Sale Type</th><th>Count</th><th>Last Sale</th></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_b'><td>Regular DLs</td><td id='theasis_dlDetails_regular'>"+img+"</td><td id='theasis_dlDetails_regular_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td>Subs</td><td id='theasis_dlDetails_subs'>"+img+"</td><td id='theasis_dlDetails_subs_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_b'><td>ELs</td><td id='theasis_dlDetails_els'>"+img+"</td><td id='theasis_dlDetails_els_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td>Partner</td><td id='theasis_dlDetails_pp'>"+((isVideo||isAudio)?"--":img)+"</td><td id='theasis_dlDetails_pp_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_b'><td>Getty</td><td id='theasis_dlDetails_gi'>"+(isAudio?"--":img)+"</td><td id='theasis_dlDetails_gi_date'></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td><b>Total</b></td><td id='theasis_dlDetails_total'>0</td><td></td></tr>"
 				+ "</table>").css({"margin-bottom":"1ex"});
 	container.before(dlTable);
 	loadDlDetails('','theasis_dlDetails_regular','theasis_dlDetails_regular_date',id);
@@ -3495,19 +3495,28 @@ showDlDetails = function(id,container) {
 		loadDlDetails('GISales','theasis_dlDetails_gi','theasis_dlDetails_gi_date',id);
 	}
 };
+var theasis_ADPScriptReloadCount=5;
+var theasis_ADPScriptReloadDelay=500;
 doCloseupPage=function(){
 	var manageLink=jQ("#asset-administration");
-	if (manageLink.length>0 && manageLink.is(":visible")) {
-		addCloseupPageExtras();
+	if (manageLink.length>0) {
+		if (manageLink.is(":visible")) {
+			addCloseupPageExtras();
+		} else {
+			if (theasis_ADPScriptReloadCount-->0) { // page not loaded yet?
+				window.setTimeout(doCloseupPage,theasis_ADPScriptReloadDelay);
+				theasis_ADPScriptReloadDelay*=2;
+			}
+		}
 	}
 };
 addCloseupPageExtras=function(){
 	var match = loc.match(/.*-(\d+)/);
 	if (match.length>1) {
 		var fid = match[1];
-		var edit=jQ("<button class='btnCtal theasis_btnCtal' style='background-color: #a2e3d8; cursor: pointer'>Edit File</button>").click(function(){location.href='/file_closeup_edit.php?id='+fid;});
-		var details=jQ("<button class='btnCtal theasis_btnCtal' style='background-color: #a2e3d8; cursor: pointer'>DL History</button>").click(function(){location.href='/file_downloads.php?id='+fid;});
-		var deactivate=jQ("<button class='btnCta0 theasis_btnCta0' style='background-color: #e38282; cursor: pointer'>Deactivate</button>").click(function(){location.href='/file_status_change.php?id='+fid;});
+		var edit=jQ("<button class='theasis_button'>Edit File</button>").click(function(){location.href='/file_closeup_edit.php?id='+fid;});
+		var details=jQ("<button class='theasis_button'>DL History</button>").click(function(){location.href='/file_downloads.php?id='+fid;});
+		var deactivate=jQ("<button class='theasis_button theasis_redbutton'>Deactivate</button>").click(function(){location.href='/file_status_change.php?id='+fid;});
 		var target=jQ("div.adp-contributor-name").parent();
 		var container = jQ("<div id='theasis_adp_extras_container'/>");
 		container.html(edit);
@@ -3629,7 +3638,7 @@ function getPreInitData(data) {
 		tb=jQ("<div id='theasis_preInitData'/>");
 		avatar.children().css({'padding':'4px'});
 		tb.append(avatar);
-		var uploadsLink=jQ('<a id="toolbarUploads" href="//www.istockphoto.com/my_uploads.php" style="color: rgb(238, 238, 238);"><img src="https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&amp;chld=|14|000|glyphish_toolbox|16|eeeeee|FFF" class="m" style="width: 25px; height: 13px;"></a>');
+		var uploadsLink=jQ('<a id="toolbarUploads" href="/my_uploads.php" style="color: rgb(238, 238, 238);"><img src="https://chart.googleapis.com/chart?chst=d_simple_text_icon_left&amp;chld=|14|000|glyphish_toolbox|16|eeeeee|FFF" class="m" style="width: 25px; height: 13px;"></a>');
 		tb.append(sepDiv.clone());
 		tb.append(jQ("#toolbarSitemailSpan",html));
 		tb.append(sepDiv.clone());
