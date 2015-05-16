@@ -3,8 +3,8 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.10
-// iStockPhoto greasemonkey script (c) Martin McCarthy 2013
+// @version	   2.0.11
+// iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
 // First release
@@ -240,6 +240,9 @@
 // v2.0.0-v2.0.10
 // Martin McCarthy 9 Apr 2015 - 13 May 2015
 // New ADP
+// v2.0.11
+// Martin McCarthy 16 May 2015
+// Possible fix for non-Exclusive PP page
 
 // TZ nonsense
 (function () {
@@ -1235,7 +1238,7 @@ getTable = function(html) {
     selector = "table:first";
   }
   if (isImgSub || isPP) {
-    selector = "table:eq(1)";
+    selector = "table:last";
   }
 //  console.log("** selector: " + selector);
 	var table = jQ(selector,html);
