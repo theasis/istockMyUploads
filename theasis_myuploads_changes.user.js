@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.11
+// @version	   2.0.12
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -243,6 +243,9 @@
 // v2.0.11
 // Martin McCarthy 16 May 2015
 // Possible fix for non-Exclusive PP page
+// v2.0.12
+// Martin McCarthy 20 May 2015
+// Royalty on the new ADP
 
 // TZ nonsense
 (function () {
@@ -3471,6 +3474,11 @@ loadDlDetails = function(dlType,dlTarget,dateTarget,id) {
 			var totalContainer=jQ("#theasis_dlDetails_total");
 			var total=parseInt(totalContainer.text())+result;
 			totalContainer.html("<b>"+total+"</b>");
+			var firstTable=jQ("div.fullPage table:first",html).text();
+			var royMatch = firstTable.match(/Total\s+royalties:\s*(\$\d+\.\d+)/);
+			if (match) {
+				jQ("#theasis_dlRoyalty_total").text(royMatch[1]);
+			}
 		})
 		.fail(function() { jQ("#"+target).text("--"); });
 };
@@ -3485,9 +3493,11 @@ showDlDetails = function(id,container) {
 				+ "<tr class='theasis_dlDetlailsTable2_row_b'><td>ELs</td><td id='theasis_dlDetails_els'>"+img+"</td><td id='theasis_dlDetails_els_date'></td></tr>"
 				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td>Partner</td><td id='theasis_dlDetails_pp'>"+((isVideo||isAudio)?"--":img)+"</td><td id='theasis_dlDetails_pp_date'></td></tr>"
 				+ "<tr class='theasis_dlDetlailsTable2_row_b'><td>Getty</td><td id='theasis_dlDetails_gi'>"+(isAudio?"--":img)+"</td><td id='theasis_dlDetails_gi_date'></td></tr>"
-				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td><b>Total</b></td><td id='theasis_dlDetails_total'>0</td><td></td></tr>"
+				+ "<tr class='theasis_dlDetlailsTable2_row_a'><td><b style='font-size:120%'>Total</b></td><td id='theasis_dlDetails_total'>0</td><td></td></tr>"
 				+ "</table>").css({"margin-bottom":"1ex"});
 	container.before(dlTable);
+	var royaltyTable=jQ("<table id='theasis_dlRoyaltyTable' class='theasis_detailsTable'><tr class='theasis_dlDetlailsTable2_row_a'><td><b style='font-size:110%'>Total Royalties</b></td><th id='theasis_dlRoyalty_total'>--</th></tr></table>").css({"margin-bottom":"1ex"});
+	container.before(royaltyTable);
 	loadDlDetails('','theasis_dlDetails_regular','theasis_dlDetails_regular_date',id);
 	loadDlDetails('Subscriptions','theasis_dlDetails_subs','theasis_dlDetails_subs_date',id);
 	loadDlDetails('ExtendedLicense','theasis_dlDetails_els','theasis_dlDetails_els_date',id);
