@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.13
+// @version	   2.0.14
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -249,6 +249,9 @@
 // v2.0.13
 // Martin McCarthy 7 Jun 2015
 // Pop-up sales details on the new ADP
+// v2.0.14
+// Martin McCarthy 6 Aug 2015
+// Link to the new forums
 
 // TZ nonsense
 (function () {
@@ -3443,7 +3446,7 @@ showGridviewButton=function(){
 ensureToolbarExists=function(preInit){
 	var toolbar = jQ("#toolbar");
 	if (toolbar.length<1) {
-		toolbar = jQ("<div id='toolbar' class='theasisReplacementToolbar'><div id='tbContentLeft'></div><div id='tbContentRight'><a href='/forums.php'>Forum</a><a id='toolbar-lightbox' href='/my-account/lightbox?orderBy=CreationDate&order=DESC' style='margin-left: 1em;'>LBs</a></div></div>");
+		toolbar = jQ("<div id='toolbar' class='theasisReplacementToolbar'><div id='tbContentLeft'></div><div id='tbContentRight'><a href='https://contributors.gettyimages.com/forum/'>Forum</a><a id='toolbar-lightbox' href='/my-account/lightbox?orderBy=CreationDate&order=DESC' style='margin-left: 1em;'>LBs</a></div></div>");
 		toolbar.appendTo("body");
 		if (preInit) {
 			jQ("#tbContentLeft").append(preInit.html());
