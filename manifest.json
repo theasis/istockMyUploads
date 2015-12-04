@@ -3,7 +3,7 @@
 
   "name": "iStock my_uploads fixes",
   "description": "Makes usability improvements to the iStock my_uploads page for contributors.",
-  "version": "2.0.14",
+  "version": "2.0.15",
   
   "icons": { 
           "128": "myuploads-icon-1.png" },
@@ -11,7 +11,8 @@
     "js": [ "jquery-1.10.2.min.js", "theasis_myuploads_changes.user.js" ],
     "matches": [
       "http://*.istockphoto.com/*",
-      "https://*.istockphoto.com/*"
+      "https://*.istockphoto.com/*",
+	  "https://contributors.gettyimages.com/forum/*"
 	]
   } ]
 

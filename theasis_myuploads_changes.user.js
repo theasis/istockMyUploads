@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.14
+// @version	   2.0.15
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -252,6 +252,9 @@
 // v2.0.14
 // Martin McCarthy 6 Aug 2015
 // Link to the new forums
+// v2.0.14
+// Martin McCarthy 1 Oct 2015
+// Thumbnails fix
 
 // TZ nonsense
 (function () {
@@ -1302,7 +1305,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 					case "1": dlClassStyle="ridge"; dlClassColour="rgba(240,240,20,0.95)"; break;
 				}
 				var dlBox=jQ("<span class='theasis_loupe_dls_text'>").text(dls);
-				var imgCell = jQ("<td>").css({width:"70px",height:"70px","background":"url("+"//i.istockimg.com/file_thumbview_approve/"+id+"/1/) no-repeat center center","background-size":"cover","border-width":"5px","border-spacing":"5px","border-style":"solid","border-color":"rgba(240,240,240,0.95)",padding:"0"}).html(dlBox);
+				var imgCell = jQ("<td>").css({width:"70px",height:"70px","background":"url("+"//i.istockimg.com/file_thumbview_approve/"+id+"/1/stock-photo-"+id+"-.jpg) no-repeat center center","background-size":"cover","border-width":"5px","border-spacing":"5px","border-style":"solid","border-color":"rgba(240,240,240,0.95)",padding:"0"}).html(dlBox);
 				imgCell.appendTo(eRow);
 				if (i%3==0) {
 					eRow.appendTo(extras);
@@ -3670,7 +3673,19 @@ doInit=function(preInit){
 			checkBalance();
 		}
 	}
+	
+	if (jQ('#yafheader').length){
+		var gistuff=jQ('<div id="istock_stuff">hello</div>');
+		jQ('#yafheader').after(gistuff);
+		jQ.ajax({
+			url:"https://www.istockphoto.com/help/site-map",
+			success:loadiStockIntoGetty
+		});
+	}
 	return initResult;
+};
+function loadiStockIntoGetty(data) {
+	jQ("#istock_stuff").html(data);
 };
 function getPreInitData(data) {
 	var tb;
