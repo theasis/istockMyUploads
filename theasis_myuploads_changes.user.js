@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.15
+// @version	   2.0.16
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -1659,7 +1659,6 @@ showKeywords = function(el,row,fid) {
 addContribPageLinks = function(userID,paraText,removeText,wrapper,onDetailPage) {
 	var links = {
 		"DL":["/my_uploads.php",[["?order=CreationDate","Upload Date"],["?order=LastDownload","Last DL"],["?order=ApprovalDate","Approval Date"],["?order=DownloadCount","DLs"],["?order=Royalty","Royalty"],["?order=Views","Views"],["?order=AverageMonthlyDownloads","DLs/mo"]]],
-    "Cr Sub":["/my_uploads_subscription.php",[["?order=DelayCount","Delayed Royalty"],["?order=LastDownload","Last DL"],["?order=DownloadCount","Sub DLs"],["?order=CreationDate","Upload Date"]]],
     "Im Sub":["/my-account/my-uploads/subscriptions",[["/1/roylties/desc","Royalty"],["/1/lastsubdl/desc","Last DL"],["/1/subdls/desc","Sub DLs"],["/1/upload/desc","Upload Date"]]],
 		"EL":["/license_earnings.php",[["?order=dateDesc","EL Date"],["?order=royaltyDesc","Royalty"],["?order=fileIDDesc","File Number"]]],
 		"EL Info":["/license_info.php",[["?order=royaltyDesc","Royalty"],["?order=uploadDateDesc","Upload Date"]]],
@@ -1826,7 +1825,7 @@ processLatestSale = function(data) {
 	GM_setValue(toolBarSaleTitleId,title);
 	var target=jQ("#"+toolBarSaleTargetId);
 	target.css({color:"rgb(170,170,170)","font-size":"90%",background:"transparent",border:"none","font-weight":"normal",padding:"0"});
-	target.find("a:first").attr({href:"/stock-photo-"+fid+"-.php"});
+	target.find("a:first").attr({href:"/stock-photo-"+fid+"-a.php"});
 	target.find("img:first").attr({"src":thumbUrl,"title":title,"alt":title}).css({"height":"38px","vertical-align":"middle"}).load(function(){var h=jQ(this).height();var w=jQ(this).width();var ih=Math.min(38,h);var iw=Math.round(ih*w/h);jQ(this).css({width:w,height:h}).mouseenter(function(e){doLoupe(e,jQ(this),true,true,fileId);}).mouseleave(function(){undoLoupe();});});
 	jQ.ajax({
 		url:saleUrl,
