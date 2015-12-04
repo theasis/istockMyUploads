@@ -2678,7 +2678,7 @@ checkAndShowColumns = function() {
 checkBalance = function() {
 	if (!getVal("checkForNewSales")) return;
 	jQ.ajax({
-		url:"/help/site-map",
+		url:"//www.istockphoto.com/help/site-map",
 		success:processBalance
 	});
 	if (!window.theasis_dontCheckBalance) window.setTimeout(checkBalance,5*60*1000); // 5 mins
@@ -3089,7 +3089,7 @@ prepareSettingsDiv = function() {
 		}).click(function(e) { var l=e.pageX; var t=e.pageY-jQ(window).scrollTop();jQ('#'+settingsID).css({left:l,top:t}).stop().show('fast');}).addClass("btnCta1");
 		var settingsDiv = jQ('<div><div class="h2withline" style="margin-top:-1.5em;">Settings</div></div>').attr('id',settingsID).attr( {style:'position:fixed;left:100px;top:100px;z-index:10000;background-color:#f0f8ff;border:2px solid #333;padding:4em; max-height:400px;overflow-y:scroll;'} ).stop().hide();
 		var closeButtonTop = jQ('<img>').attr({
-			src: "/static/images/blank.gif",
+			src: "//i.istockimg.com/static/images/blank.gif",
 			id: settingsID+"CloseButtonTop"});
 		closeButtonTop.click(function () { jQ('#'+settingsID).hide('fast'); }).addClass("modalClose").appendTo(settingsDiv);
 		settingsDiv.appendTo('body');
@@ -3674,7 +3674,7 @@ doInit=function(preInit){
 	}
 	
 	if (jQ('#yafheader').length){
-		var gistuff=jQ('<div id="istock_stuff">hello</div>');
+		var gistuff=jQ('<div id="istock_stuff" style="text-align:right; padding: 8px;"></div>');
 		jQ('#yafheader').after(gistuff);
 		jQ.ajax({
 			url:"https://www.istockphoto.com/help/site-map",
@@ -3684,7 +3684,18 @@ doInit=function(preInit){
 	return initResult;
 };
 function loadiStockIntoGetty(data) {
-	jQ("#istock_stuff").html(data);
+	var html=jQ(data);
+	console.log(html.find("div").length);
+	console.log(data);
+
+	var toolbar = html.find("#toolbarBalance");
+	if (toolbar.length) {
+		toolbar.prepend(jQ("<span>iStock </span>"));
+		toolbar.css({color:"#105cb6"});
+	} else {
+		toolbar="Not logged in to iStock";
+	}
+	jQ("#istock_stuff").html(toolbar);
 };
 function getPreInitData(data) {
 	var tb;
