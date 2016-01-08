@@ -252,9 +252,14 @@
 // v2.0.14
 // Martin McCarthy 6 Aug 2015
 // Link to the new forums
-// v2.0.14
+// v2.0.15
 // Martin McCarthy 1 Oct 2015
 // Thumbnails fix
+// v2.0.16
+// Martin McCarthy 8 Jan 2016
+// Fixes for URL changes
+// Don't show size or RCs in toolbar
+// Show latest sub in the toolbar
 
 // TZ nonsense
 (function () {
@@ -1260,7 +1265,7 @@ getTable = function(html) {
 	return table;
 };
 
-doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
+doLoupe = function(e,imgEl,addStyle,toolBar,idList,isSub) {
 	addStyle=true;
 	undoLoupe();
 	var lImg=380;
@@ -1270,6 +1275,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 	if (!getVal("loupe")) return;
 	var loupeHeight=lMax;
 	var loupeWidth=lImg;
+	var subText = isSub ? " Sub " : "";
 	try {
 		loupeHeight = Math.min(lMax,Math.floor(lImg*imgEl.height()/imgEl.width()+lBuffer));
 		loupeWidth = Math.min(lImg,Math.floor(lImg*imgEl.width()/imgEl.height()));
@@ -1314,7 +1320,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 			}
 			eRow.appendTo(extras);
 			extras.appendTo(jQ("#theasisLastSaleLoupeCell2"));
-			jQ("<tr><td colspan='3' class='theasis_loupe_title_text' style='text-align:right;width:225px;'>Previous DLs</td></tr>").appendTo(jQ("#theasisLastSaleLoupeCell2"));
+			jQ("<tr><td colspan='3' class='theasis_loupe_title_text' style='text-align:right;width:225px;'>Previous " +subText+ "DLs</td></tr>").appendTo(jQ("#theasisLastSaleLoupeCell2"));
 		}
 	} catch(e) {
 		console.log(e.message);
@@ -1322,6 +1328,9 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 
 	if (getVal("loupeTitle")) {
 		var title=imgEl.attr("title");
+		if (isSub) {
+			title = "Subscription Sales";
+		}
 		if(!title) {
 			title=imgEl.attr("alt");
 		}
@@ -1331,7 +1340,7 @@ doLoupe = function(e,imgEl,addStyle,toolBar,idList) {
 			if (altTitle) title=altTitle;
 		}
 		if (title && idList && idList.length>0) {
-			title += ": " + dlsFromIdPlusType(idList[0]) + " DLs";
+			title += ": " + dlsFromIdPlusType(idList[0]) + subText + " DLs";
 		}
 		if (title) jQ("<div class='theasis_loupe_title_text'>"+title+"</div>").appendTo(loupeContainer);
 	}
@@ -1717,6 +1726,13 @@ var toolBarSaleThumbId="theasisToolbarLatestThumbnailImg";
 var toolBarSaleTitleId="theasisToolbarLatestThumbnailTitle";
 var toolBarSaleTextId="theasisToolbarLatestThumbnailText";
 var toolBarSaleSize="theasisToolbarLatestSize";
+var toolBarSubTargetId="theasisToolbarLatestSubThumbnailContainer";
+var toolBarSubLoadingId="theasisToolbarLatestSubThumbnailLoading";
+var toolBarSubThumbFileId="theasisToolbarLatestSubThumbnailId";
+var toolBarSubThumbId="theasisToolbarLatestSubThumbnailImg";
+var toolBarSubTitleId="theasisToolbarLatestSubThumbnailTitle";
+var toolBarSubTextId="theasisToolbarLatestSubThumbnailText";
+
 showLatestSale = function() {
 	var lastThumbFileId=arrayFromIdStr(GM_getValue(toolBarSaleThumbFileId,""));
 	debug("showLatestSale: lastThumbFileId=" + lastThumbFileId);
@@ -1725,7 +1741,7 @@ showLatestSale = function() {
 	debug("showLatestSale: lastThumbTitle=" + lastThumbTitle);
 	var lastThumbText=GM_getValue(toolBarSaleTextId,"<a href='#'>Loading...</a>");
 	var img = lastThumbImg ?
-		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle","margin-top":"-4px"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
+		jQ("<img>").attr({id:toolBarSaleThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle","margin-top":"-4px"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId,false);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId,false);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
 		jQ("<img>").attr({id:toolBarSaleThumbId,"src":'//i.istockimg.com/static/images/blank.gif'});
 	var a = jQ("<a>").attr({href:"#"}).css({color:"#aaa","font-weight":"normal","font-size":"90%"}).append(img);
 	var txt = jQ("<span>").attr({id:toolBarSaleTextId}).html(lastThumbText);
@@ -1739,6 +1755,31 @@ showLatestSale = function() {
 	jQ.ajax({
 		url:"//www.istockphoto.com/my_uploads.php?page=1&order=LastDownload",
 		success:processLatestSale
+	});
+};
+
+showLatestSub = function() {
+	var lastThumbFileId=arrayFromIdStr(GM_getValue(toolBarSubThumbFileId,""));
+	debug("showLatestSub: lastThumbFileId=" + lastThumbFileId);
+	var lastThumbImg=GM_getValue(toolBarSubThumbId,"");
+	var lastThumbTitle=GM_getValue(toolBarSubTitleId,"");
+	debug("showLatestSub: lastThumbTitle=" + lastThumbTitle);
+	var lastThumbText=GM_getValue(toolBarSubTextId,"<a href='#'>Loading...</a>");
+	var img = lastThumbImg ?
+		jQ("<img>").attr({id:toolBarSubThumbId,"src":lastThumbImg,"title":lastThumbTitle,"alt":lastThumbTitle}).css({"height":"38px","vertical-align":"middle","margin-top":"-4px"}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId);}).mouseleave(function(){undoLoupe();}).bind('load',function(){var h=jQ(this)[0].naturalHeight;var w=jQ(this)[0].naturalWidth;var ih=38;var iw=Math.round(ih*w/h); if (iw<1) { iw=38 };jQ(this).css({width:iw,height:ih}).unbind('mouseenter').unbind('mouseleave').unbind('mouseover').unbind('mouseout').mouseenter(function(e){doLoupe(e,jQ(this),true,true,lastThumbFileId,true);}).mouseleave(function(){undoLoupe();});}).each(function(){if(this.complete) {jQ(this).load();}}) :
+		jQ("<img>").attr({id:toolBarSubThumbId,"src":'//i.istockimg.com/static/images/blank.gif'});
+	var a = jQ("<a>").attr({href:"#"}).css({color:"#aaa","font-weight":"normal","font-size":"90%"}).append(img);
+	var txt = jQ("<span>").attr({id:toolBarSubTextId}).html(lastThumbText);
+	var container=jQ("#"+toolBarSubTargetId);
+	if (!container.length) {
+		jQ("#tbContentLeft").append(jQ("<div class='theasis_toolbarSeparator'/><img src='//i.istockimg.com/static/images/blank.gif' class='sptWhiteSeparatorVertical m'>")).append(jQ("<span>Last Sub: </span>").attr({id:toolBarSubTargetId}).css({color:"#fff"}).append(a).append(txt));
+	} else {
+		container.empty().html("Last Sub: ").append(a).append(txt);
+	}
+//	jQ("#"+toolBarSaleLoadingId).fadeOut(5000);
+	jQ.ajax({
+		url:"//www.istockphoto.com/my-account/my-uploads/subscriptions/1/lastsubdl/desc",
+		success:processLatestSub
 	});
 };
 // return the matching index in fileTypeLUT, or -1 if no match
@@ -1794,6 +1835,42 @@ notLoggedIn = function() {
 	var returnUrl=window.btoa(encodeURIComponent(window.location));
 	jQ("#"+toolBarSaleTargetId).css({color:"black","background-color":"red",border:"2px solid white","font-size":"150%","font-weight":"bold",padding:"0.3em"}).html("<a href='//www.istockphoto.com/sign-in/"+returnUrl+"'>LOGGED OUT</a>");
 };
+processLatestSub = function(data) {
+//	jQ("#"+toolBarSaleLoadingId).stop().fadeIn(100).fadeOut(1000);
+	var html=jQ(data);
+	var rows=html.find("tr.my-uploads-row");
+	var fileId=[];
+	var file;
+	rows.each(function(){
+		var cols=jQ(this).find("td");
+		if (!file) file=cols.eq(0).find("img:first");
+		var id=cols.eq(1).text().trim();
+		var fileType=0;
+		var dls=cols.eq(3).text().trim();
+		if (id) {
+			fileId.push(id+"x"+fileType+"y"+dls);
+//			debug("processLatestSale: rows.each: match: " + match[1]);
+		}
+	});
+	console.log("**processLatestSub: " + fileId[0]);
+	var fid = idFromIdPlusType(fileId[0]);
+	GM_setValue(toolBarSubThumbFileId,strFromIdArray(fileId));
+	var saleUrl="/file_downloads.php?PageSetting=Subscriptions&page=1&order=PurchaseTimeDESC&id="+fid;
+	debug("processLatestSub: saleUrl=" + saleUrl);
+	var thumbUrl = file.attr("src");
+	debug("processLatestSub: thumbUrl=" + thumbUrl);
+	GM_setValue(toolBarSubThumbId,thumbUrl);
+	var title = file.attr("title");
+	GM_setValue(toolBarSubTitleId,title);
+	var target=jQ("#"+toolBarSubTargetId);
+	target.css({color:"rgb(170,170,170)","font-size":"90%",background:"transparent",border:"none","font-weight":"normal",padding:"0"});
+	target.find("a:first").attr({href:"/stock-photo-"+fid+"-a.php"});
+	target.find("img:first").attr({"src":thumbUrl,"title":title,"alt":title}).css({"height":"38px","vertical-align":"middle"}).load(function(){var h=jQ(this).height();var w=jQ(this).width();var ih=Math.min(38,h);var iw=Math.round(ih*w/h);jQ(this).css({width:w,height:h}).mouseenter(function(e){doLoupe(e,jQ(this),true,true,fileId,true);}).mouseleave(function(){undoLoupe();});});
+	jQ.ajax({
+		url:saleUrl,
+		success:processLatestSubDetails
+	});
+};
 processLatestSale = function(data) {
 //	jQ("#"+toolBarSaleLoadingId).stop().fadeIn(100).fadeOut(1000);
 	var html=jQ(data);
@@ -1833,6 +1910,7 @@ processLatestSale = function(data) {
 	});
 };
 var seenKey="theasisToolBarLatestDownloadSeenKey";
+var seenSubKey="theasisToolBarLatestSubDownloadSeenKey";
 processLatestSaleDetails = function(data) {
 //	jQ("#"+toolBarSaleLoadingId).stop().hide();
 	var lastThumbFileId=arrayFromIdStr(GM_getValue(toolBarSaleThumbFileId,""));
@@ -1852,7 +1930,7 @@ processLatestSaleDetails = function(data) {
 	var sp = "&nbsp;"
 	var saleSize = jQ.trim(cols.eq(1).text());
 	var royalty = jQ.trim(cols.eq(3).text().replace("USD",""));
-	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + (getVal("showSaleSize") ? (saleSize + sp) : "") + royalty + "</a></div>";
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + royalty + "</a></div>";
 	GM_setValue(toolBarSaleSize,saleSize);
 	GM_setValue(toolBarSaleTextId,saleText);
 	debug("processLatestSaleDetails: saleSize=" + saleSize);
@@ -1872,9 +1950,39 @@ processLatestSaleDetails = function(data) {
 			success:processLatestELDetails
 		});
 	}
-	if (getVal("showRCsInToolbar")) {
-		getFileDataThenCallback(fid,processLatestRCDetails,[royalty.substring(1),ftype]);
+//	if (getVal("showRCsInToolbar")) {
+//		getFileDataThenCallback(fid,processLatestRCDetails,[royalty.substring(1),ftype]);
+//	}
+};
+processLatestSubDetails = function(data) {
+//	jQ("#"+toolBarSaleLoadingId).stop().hide();
+	var lastThumbFileId=arrayFromIdStr(GM_getValue(toolBarSubThumbFileId,""));
+	var fid=idFromIdPlusType(lastThumbFileId[0]);
+	var ftype=typeFromIdPlusType(lastThumbFileId[0]);
+	debug("processLatestSubDetails: lastTFId[0] " + lastThumbFileId[0] + " ftype " + ftype);
+	var target=jQ("#"+toolBarSubTextId);
+	var html = jQ(data);
+	var thumbUrl=html.find('img[src*="file_thumbview_approve"]:first').attr('src');
+	var table = html.find(".reporttable:first");
+	var row=table.find("tr:eq(1)");
+	var cols = row.find("td");
+	var date = dateStrToDate(cols.eq(1).text());
+	var thisSaleDate=cols.eq(1).text().substr(0,10);
+	var thisSaleTime=cols.eq(1).text().substr(10,9);
+	var seenval=thumbUrl+thisSaleDate+thisSaleTime;
+	var sp = "&nbsp;"
+	var royalty = jQ.trim(cols.eq(2).text().replace("USD",""));
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + royalty + "</a></div>";
+	GM_setValue(toolBarSubTextId,saleText);
+	debug("processLatestSaleDetails: saleText=" + saleText);
+	var sale = jQ(saleText);
+	if (GM_getValue(seenSubKey,"novalue")==seenval) {
+		sale.css({"font-weight":"normal","font-size":"90%","line-height":"21px"}).removeClass("theasisNewSale");
+	} else {
+		sale.css({"font-weight":"bold","font-size":"110%","line-height":"21px"}).addClass("theasisNewSale");
+		GM_setValue(seenSubKey,seenval);
 	}
+	target.html(sale);
 };
 getFileDataThenCallback = function(fid,callback,params) {
 	jQ.ajax({
@@ -3286,6 +3394,7 @@ processBalance = function(data) {
 				jQ("#toolbarBalance strong").text("$"+balance).css('color','yellow');
 				if (getVal("showSaleInToolbar")) {
 					showLatestSale();
+					showLatestSub();
 				}
 				if (getVal("newSalesNotification")) {
 					try {
@@ -3581,29 +3690,29 @@ doInit=function(preInit){
 		initResult=true;
 		loc = window.location.pathname;
 
-		var onDetailPage = loc.indexOf("/my_uploads.php")>-1;
-	  var onSubPage = loc.indexOf("/my_uploads_subscription.php")>-1;
-	  var onImgSubPage = loc.indexOf("/my-uploads/subscriptions")>-1;
-		var onELPage = loc.indexOf("/license_info.php")>-1;
-		var onELEarningsPage = loc.indexOf("/license_earnings.php")>-1;
-		var onDesignPage = loc.indexOf("/design_info.php")>-1;
-		var onLBPage = loc.indexOf("/my-account/lightbox")>-1;
+		var onDetailPage = loc.match(/\/my_uploads(.php)?$/)!=null;
+	  var onSubPage = loc.match(/\/my_uploads_subscription/)!=null;
+	  var onImgSubPage = loc.match(/\/my-uploads\/subscriptions/)!=null;
+		var onELPage = loc.match(/\/license_info/)!=null;
+		var onELEarningsPage = loc.match(/\/license_earnings/)!=null;
+		var onDesignPage = loc.match(/\/design_info/)!=null;
+		var onLBPage = loc.match(/\/my-account\/lightbox/)!=null;
 	//	var onPlusPage = loc.indexOf("/my_uploads_pricepoint.php")>-1;
-		var onPartnerPage = loc.indexOf("/my_uploads_partner_program.php")>-1;
-		var onGettyPage = loc.indexOf("/my-uploads/gisales")>-1;
-		var onOldUrlFormatPage = loc.indexOf(".php")>-1;
-		var onXnetPage = loc.indexOf("/xnet.php")>-1;
-		var onDLHistoryPage = loc.indexOf("/download-history")>-1;
-		var onMyDLPage = loc.indexOf("/my_downloads.php")>-1;
-		var onPortfolioPage = loc.indexOf("/search/portfolio/")>-1;
-		var onForumsPage = loc.indexOf("/forum_messages.php")>-1;
+		var onPartnerPage = loc.match(/\/my_uploads_partner_program/)!=null;
+		var onGettyPage = loc.match(/\/my-uploads\/gisales/)!=null;
+		var onOldUrlFormatPage = loc.match(/\.php/)!=null;
+		var onXnetPage = loc.match(/\/xnet.php/)!=null;
+		var onDLHistoryPage = loc.match(/\/download-history/)!=null;
+		var onMyDLPage = loc.match(/\/my_downloads/)!=null;
+		var onPortfolioPage = loc.match(/\/search\/portfolio\//)!=null;
+		var onForumsPage = false;
 		var onCloseupPage = /\/(photo|video|vector|audio)\//.test(loc);
 		
 		noteOriginalBalance();
 		loadRoyaltyRates();
-		if ( getVal("showRCsInToolbar")) {
-			processRoyaltyRates();
-		}
+//		if ( getVal("showRCsInToolbar")) {
+//			processRoyaltyRates();
+//		}
 		
 		var myUploads = onDetailPage || onSubPage || onELPage || onELEarningsPage || onDesignPage || onPartnerPage || onGettyPage || onDLHistoryPage || onMyDLPage || onImgSubPage;
 		
@@ -3663,6 +3772,7 @@ doInit=function(preInit){
 		}
 		if (getVal("showSaleInToolbar")) {
 			showLatestSale();
+			showLatestSub();
 		}
 		if (onCloseupPage) {
 			doCloseupPage();
@@ -3673,29 +3783,7 @@ doInit=function(preInit){
 		}
 	}
 	
-	if (jQ('#yafheader').length){
-		var gistuff=jQ('<div id="istock_stuff" style="text-align:right; padding: 8px;"></div>');
-		jQ('#yafheader').after(gistuff);
-		jQ.ajax({
-			url:"https://www.istockphoto.com/help/site-map",
-			success:loadiStockIntoGetty
-		});
-	}
 	return initResult;
-};
-function loadiStockIntoGetty(data) {
-	var html=jQ(data);
-	console.log(html.find("div").length);
-	console.log(data);
-
-	var toolbar = html.find("#toolbarBalance");
-	if (toolbar.length) {
-		toolbar.prepend(jQ("<span>iStock </span>"));
-		toolbar.css({color:"#105cb6"});
-	} else {
-		toolbar="Not logged in to iStock";
-	}
-	jQ("#istock_stuff").html(toolbar);
 };
 function getPreInitData(data) {
 	var tb;

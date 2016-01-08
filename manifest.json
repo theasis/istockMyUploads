@@ -11,8 +11,7 @@
     "js": [ "jquery-1.10.2.min.js", "theasis_myuploads_changes.user.js" ],
     "matches": [
       "http://*.istockphoto.com/*",
-      "https://*.istockphoto.com/*",
-	  "https://contributors.gettyimages.com/forum/*"
+      "https://*.istockphoto.com/*"
 	]
   } ]
 
