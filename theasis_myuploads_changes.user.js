@@ -260,6 +260,9 @@
 // Fixes for URL changes
 // Don't show size or RCs in toolbar
 // Show latest sub in the toolbar
+// v2.0.17
+// Martin McCarthy 9 Jan 2016
+// Toggle subs
 
 // TZ nonsense
 (function () {
@@ -3394,7 +3397,9 @@ processBalance = function(data) {
 				jQ("#toolbarBalance strong").text("$"+balance).css('color','yellow');
 				if (getVal("showSaleInToolbar")) {
 					showLatestSale();
-					showLatestSub();
+					if (GM_getValue("showSubInToolbar")!="off") {
+						showLatestSub();
+					}
 				}
 				if (getVal("newSalesNotification")) {
 					try {
@@ -3708,6 +3713,12 @@ doInit=function(preInit){
 		var onForumsPage = false;
 		var onCloseupPage = /\/(photo|video|vector|audio)\//.test(loc);
 		
+		if (window.location.hash=="#/theasisSubOff") {
+			GM_setValue("showSubInToolbar","off");
+		}
+		if (window.location.hash=="#/theasisSubOn") {
+			GM_setValue("showSubInToolbar","on");
+		}
 		noteOriginalBalance();
 		loadRoyaltyRates();
 //		if ( getVal("showRCsInToolbar")) {
@@ -3772,7 +3783,9 @@ doInit=function(preInit){
 		}
 		if (getVal("showSaleInToolbar")) {
 			showLatestSale();
-			showLatestSub();
+			if (GM_getValue("showSubInToolbar")!="off") {
+				showLatestSub();
+			}
 		}
 		if (onCloseupPage) {
 			doCloseupPage();
