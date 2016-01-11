@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.16
+// @version	   2.0.18
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -263,6 +263,9 @@
 // v2.0.17
 // Martin McCarthy 9 Jan 2016
 // Toggle subs
+// v2.0.18
+// Martin McCarthy 11 Jan 2016
+// Link to Subs on my uploads from the subs details
 
 // TZ nonsense
 (function () {
@@ -1975,7 +1978,7 @@ processLatestSubDetails = function(data) {
 	var seenval=thumbUrl+thisSaleDate+thisSaleTime;
 	var sp = "&nbsp;"
 	var royalty = jQ.trim(cols.eq(2).text().replace("USD",""));
-	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my_uploads.php?page=1&order=LastDownload' style='white-space:nowrap;'>" + sp + date + sp + royalty + "</a></div>";
+	var saleText = "<div id='theasisToolBarLatestDownloadTextContainer' style='display:inline-block;'><a id='theasisToolBarLatestDownloadTextLink' href='/my-account/my-uploads/subscriptions/1/lastsubdl/desc' style='white-space:nowrap;'>" + sp + date + sp + royalty + "</a></div>";
 	GM_setValue(toolBarSubTextId,saleText);
 	debug("processLatestSaleDetails: saleText=" + saleText);
 	var sale = jQ(saleText);
