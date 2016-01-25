@@ -3,7 +3,7 @@
 // @namespace      theasis
 // @match          http://*.istockphoto.com/*
 // @match          https://*.istockphoto.com/*
-// @version	   2.0.18
+// @version	   2.0.19
 // iStockPhoto browser script (c) Martin McCarthy 2013-2015
 // ==/UserScript==
 // v1.0.1
@@ -266,6 +266,12 @@
 // v2.0.18
 // Martin McCarthy 11 Jan 2016
 // Link to Subs on my uploads from the subs details
+// v2.0.19
+// Martin McCarthy 14 Jan 2016
+// Fix for Subs grid-view when there are mod-60 files (fix by member Gannet77 - many thanks!)
+// v2.0.20
+// Martin McCarthy 25 Jan 2016
+// Fix for the new language-selection flag being underneath the toolbar
 
 // TZ nonsense
 (function () {
@@ -1189,7 +1195,7 @@ genericAddViews=function(obj,storeName) {
 doStyle = function () {
 	var el = jQ("#theasis_myUploads_style");
 	if (el.length<1) {
-		jQ("<style type='text/css' id='theasis_myUploads_style'>body {padding-bottom:40px;} .theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;} .theasisReplacementToolbar {min-width: 900px; height: 43px; z-index: 5000; position: fixed; left: 25px; right: 25px; bottom: 0; background: #111; opacity: 0.9; line-height: 43px; border-radius: 5px 5px 0 0; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;} .theasisReplacementToolbar #tbContentLeft {float: left; margin-left: 12px;} .theasisReplacementToolbar #tbContentRight {text-align: right; margin-right: 12px;}  .theasis_toolbarSeparator {width: 0px; height: 20px; border-left: 1px dotted #666; display: inline; margin-left: 8px; margin-right: 8px;} .theasisReplacementToolbar a {color: #e3e3e3;} .theasis_adpSalesTable td {padding: 4px; font-size: 80%;} .theasis_adpSalesTable,#theasis_myUploads_loupe {background: rgba(240,240,240,0.95); color: #333; padding: 10px; border: solid 3px rgba(180,180,180,0.5); z-index:1000; -moz-box-shadow: 4px 4px 4px rgba(0,0,0,0.6); --box-shadow: 4px 4px 4px rgba(0,0,0,0.6); box-shadow: 4px 4px 4px rgba(0,0,0,0.6); border-radius: 5px;} .theasis_loupe_title_text {font-size: 14px;} .theasis_loupe_dls_text {font-size: 12px;font-weight:bold;color:black;background:rgba(240,240,240,0.2);text-shadow:-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white;border-radius:5px;overflow:hidden;padding:4px; margin: 0;} .theasis_detailsTable { border: 1px solid #000;} .theasis_detailsTable tr { border: 1px dotted #02a388; } .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_dlDetlailsTable2_row_a { background-color:#ddd; padding: 2px; } .theasis_button { box-shadow: 0px 1px 1px 0px #1564ad; background: linear-gradient(to bottom, #a2e3d8 5%, #92d3c8 100%); background-color: #a2e3d8; border-radius:4px; border:1px solid #a2e3d8; cursor:pointer; color:#333;font-size:0.7rem;font-weight:bold;padding:4px 10px; text-decoration:none; text-shadow:0px 1px 0px #528ecc; margin-right:0.5ex;} .theasis_button:hover { background: linear-gradient(to bottom, #92d3c8 5%, #a2e3d8 100%);} .theasis_redbutton { box-shadow: 0px 1px 1px 0px #8a2a21; background: linear-gradient(to bottom, #f24437 5%, #c62d1f 100%); color:#fff; background-color: #c62d1f; border:1px solid #d02718; text-shadow:0px 1px 0px #810e05;}.theasis_redbutton:hover { background: linear-gradient(to bottom, #c62d1f 5%, #f24437 100%);} </style>").appendTo("head");
+		jQ("<style type='text/css' id='theasis_myUploads_style'>body {padding-bottom:40px;} div.footer-metadata {z-index: 5001;} .theasis_myUploads_soldToday {font-weight:bold; color:#000;} .theasis_myUploads_notSoldToday {font-weight:normal; color:#666;} div.theasisEarlierSales {font-size:80%;white-space:nowrap;font-weight:normal;} div.theasisEarlierSalesDate {font-size:80%;white-space:nowrap;font-weight:bold;} #toolbar div.theasisNewSale a {color: #ef8;} .theasisReplacementToolbar {min-width: 900px; height: 43px; z-index: 5000; position: fixed; left: 25px; right: 25px; bottom: 0; background: #111; opacity: 0.9; line-height: 43px; border-radius: 5px 5px 0 0; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;} .theasisReplacementToolbar #tbContentLeft {float: left; margin-left: 12px;} .theasisReplacementToolbar #tbContentRight {text-align: right; margin-right: 12px;}  .theasis_toolbarSeparator {width: 0px; height: 20px; border-left: 1px dotted #666; display: inline; margin-left: 8px; margin-right: 8px;} .theasisReplacementToolbar a {color: #e3e3e3;} .theasis_adpSalesTable td {padding: 4px; font-size: 80%;} .theasis_adpSalesTable,#theasis_myUploads_loupe {background: rgba(240,240,240,0.95); color: #333; padding: 10px; border: solid 3px rgba(180,180,180,0.5); z-index:1000; -moz-box-shadow: 4px 4px 4px rgba(0,0,0,0.6); --box-shadow: 4px 4px 4px rgba(0,0,0,0.6); box-shadow: 4px 4px 4px rgba(0,0,0,0.6); border-radius: 5px;} .theasis_loupe_title_text {font-size: 14px;} .theasis_loupe_dls_text {font-size: 12px;font-weight:bold;color:black;background:rgba(240,240,240,0.2);text-shadow:-1px -1px 1px white, 1px 1px 1px white, -1px 1px 1px white, 1px -1px 1px white;border-radius:5px;overflow:hidden;padding:4px; margin: 0;} .theasis_detailsTable { border: 1px solid #000;} .theasis_detailsTable tr { border: 1px dotted #02a388; } .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_detailsTable td { font-size: 85%; padding: 5px 7px 2px 7px;} .theasis_dlDetlailsTable2_row_a { background-color:#ddd; padding: 2px; } .theasis_button { box-shadow: 0px 1px 1px 0px #1564ad; background: linear-gradient(to bottom, #a2e3d8 5%, #92d3c8 100%); background-color: #a2e3d8; border-radius:4px; border:1px solid #a2e3d8; cursor:pointer; color:#333;font-size:0.7rem;font-weight:bold;padding:4px 10px; text-decoration:none; text-shadow:0px 1px 0px #528ecc; margin-right:0.5ex;} .theasis_button:hover { background: linear-gradient(to bottom, #92d3c8 5%, #a2e3d8 100%);} .theasis_redbutton { box-shadow: 0px 1px 1px 0px #8a2a21; background: linear-gradient(to bottom, #f24437 5%, #c62d1f 100%); color:#fff; background-color: #c62d1f; border:1px solid #d02718; text-shadow:0px 1px 0px #810e05;}.theasis_redbutton:hover { background: linear-gradient(to bottom, #c62d1f 5%, #f24437 100%);} </style>").appendTo("head");
 	}
 };
 // processRoyaltyRates()
@@ -3541,7 +3547,7 @@ addPageToGrid=function(container,url_pattern,replaceStr,page,month,count){
 	var url=url_pattern.replace(replaceStr,page);
 	jQ.ajax({
 		url:url,
-		success:function(data){processPageForGrid(data,container,page,'',url_pattern,replaceStr,count);}
+		success:function(data){processPageForGrid(data,container,page,month,url_pattern,replaceStr,count);}
 		});
 };
 showGridview=function(){
